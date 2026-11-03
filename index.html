@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#FFFCF6">
+  <title>作品集｜作者 ID</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper:#FFFCF6; --ink:#000000; --linen:#FAF0E6;
+      --peach:#FFDAB9; --papaya:#FF7F00; --muted:#786f67;
+      --line:#e8ded2; --reader-bg:#FFFCF6; --reader-ink:#171411;
+      --serif:"Noto Serif SC",serif; --sans:"Noto Sans TC",sans-serif;
+    }
+    * { box-sizing:border-box; }
+    html { background:var(--paper); scroll-behavior:smooth; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--serif); }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    .site-shell { width:min(100% - 40px, 900px); margin:0 auto; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:30px 0 22px; border-bottom:1px solid var(--line); }
+    .author { font:600 15px var(--sans); letter-spacing:.12em; }
+    .top-note { color:var(--muted); font:12px var(--sans); letter-spacing:.08em; }
+    .intro { padding:64px 0 34px; }
+    .eyebrow { color:var(--papaya); font:600 11px var(--sans); letter-spacing:.2em; text-transform:uppercase; }
+    h1 { margin:12px 0 10px; font:500 clamp(28px,5vw,42px) var(--sans); letter-spacing:.06em; }
+    .intro p { color:var(--muted); font-size:14px; line-height:1.9; margin:0; }
+    .section-heading { display:flex; align-items:center; gap:14px; margin:18px 0 12px; font:500 12px var(--sans); letter-spacing:.16em; }
+    .section-heading:after { content:""; height:1px; background:var(--line); flex:1; }
+    #works { padding-bottom:90px; }
+    .work { border-bottom:1px solid var(--line); }
+    .work-button { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; width:100%; padding:23px 4px; border:0; background:transparent; color:inherit; text-align:left; }
+    .work-button:hover .work-title { color:var(--papaya); }
+    .work-title { display:block; font:500 18px/1.55 var(--sans); transition:color .15s; }
+    .work-summary { display:block; margin-top:7px; color:var(--muted); font:13px/1.8 var(--serif); }
+    .work-meta { flex:none; padding-top:5px; color:var(--muted); font:11px var(--sans); }
+    .chevron { display:inline-block; margin-left:6px; transition:transform .2s; }
+    .work.open .chevron { transform:rotate(180deg); }
+    .chapter-list { display:none; padding:0 0 18px 18px; }
+    .work.open .chapter-list { display:block; }
+    .chapter-button { display:flex; justify-content:space-between; width:100%; padding:11px 12px; border:0; border-left:2px solid var(--peach); background:transparent; color:var(--ink); text-align:left; font:13px/1.7 var(--sans); }
+    .chapter-button:hover { background:var(--linen); }
+    .chapter-number { color:var(--muted); font-size:11px; padding-left:12px; }
+    .gate { display:none; margin:0 0 22px; padding:20px; background:var(--linen); border:1px solid #eadbc9; }
+    .gate.visible { display:block; }
+    .gate-title { margin:0 0 7px; font:500 15px var(--sans); }
+    .hint { margin:0 0 14px; color:#6d6258; font-size:12px; line-height:1.8; white-space:pre-wrap; }
+    .gate-row { display:flex; gap:8px; }
+    .gate input { min-width:0; flex:1; padding:11px 12px; border:1px solid #d9c9b8; border-radius:0; background:var(--paper); color:var(--ink); outline:none; font:14px var(--sans); }
+    .gate input:focus { border-color:var(--papaya); }
+    .gate button,.back-button { border:0; padding:0 18px; background:var(--papaya); color:#fff; font:500 12px var(--sans); }
+    .gate-error { min-height:18px; margin:9px 0 0; color:#9b3b1d; font:12px var(--sans); }
+    .reader { display:none; min-height:100vh; background:var(--reader-bg); color:var(--reader-ink); }
+    .reader.active { display:block; }
+    .reader-inner { width:min(100% - 36px, 720px); margin:0 auto; padding:20px 0 70px; }
+    .reader-toolbar { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding:7px 0 16px; }
+    .back-button { padding:9px 13px; background:var(--linen); color:var(--ink); }
+    .mode-button { padding:9px 13px; border:1px solid var(--line); background:transparent; color:inherit; font:12px var(--sans); }
+    .reader h2 { margin:46px 0 34px; text-align:center; font:500 clamp(22px,5vw,30px)/1.6 var(--sans); letter-spacing:.04em; }
+    .chapter-nav { display:flex; justify-content:space-between; gap:12px; margin:0 0 28px; }
+    .chapter-nav.bottom { margin:36px 0 0; }
+    .chapter-nav button { border:0; background:transparent; color:var(--muted); padding:8px 0; font:12px var(--sans); }
+    .chapter-nav button:disabled { visibility:hidden; }
+    .article-body { font:16px/1.0 var(--serif); white-space:pre-wrap; overflow-wrap:anywhere; user-select:none; -webkit-user-select:none; }
+    .article-body p { margin:0 0 1em; }
+    .reader.night { --reader-bg:#201e1b; --reader-ink:#e9e0d5; --line:#49423b; }
+    .reader.night .back-button { background:#39332d; color:#e9e0d5; }
+    .reader.night .mode-button,.reader.night .chapter-nav button { color:#e9e0d5; }
+    .reader.night .article-body { color:#e9e0d5; }
+    .reader.night .reader-toolbar { border-color:#49423b; }
+    .footer { padding:18px 0 28px; border-top:1px solid var(--line); color:var(--muted); font:11px var(--sans); letter-spacing:.08em; }
+    .hidden { display:none !important; }
+    @media (max-width:560px) {
+      .site-shell { width:min(100% - 30px,900px); }
+      .topbar { padding-top:23px; }
+      .intro { padding:48px 0 27px; }
+      .work-button { padding:19px 2px; }
+      .work-title { font-size:16px; }
+      .reader-inner { width:calc(100% - 34px); }
+      .article-body { font-size:16px; line-height:1; }
+      .gate-row { flex-direction:column; }
+      .gate button { min-height:42px; }
+    }
+    /* 轻度防复制：只能提高门槛，不能阻止截图、开发者工具或网络请求查看。 */
+    body, .article-body { -webkit-touch-callout:none; }
+  </style>
+</head>
+<body>
+  <main id="home" class="site-shell">
+    <header class="topbar">
+      <div class="author" id="author-id">AUTHOR ID</div>
+      <div class="top-note">PRIVATE LIBRARY · FICTION</div>
+    </header>
+    <section class="intro">
+      <div class="eyebrow">A QUIET CORNER FOR STORIES</div>
+      <h1>作品目录</h1>
+      <p>把故事放在这里。选择篇名或章节，并输入对应密码即可阅读。</p>
+    </section>
+    <div class="section-heading">全部作品</div>
+    <section id="works" aria-label="作品目录"></section>
+    <footer class="footer">© <span id="year"></span> <span id="footer-author">AUTHOR ID</span></footer>
+  </main>
+
+  <section id="reader" class="reader" aria-label="文章阅读区">
+    <div class="reader-inner">
+      <div class="reader-toolbar">
+        <button class="back-button" id="return-home" type="button">← 返回目录</button>
+        <button class="mode-button" id="night-toggle" type="button">切换深夜模式</button>
+      </div>
+      <h2 id="reader-title"></h2>
+      <nav class="chapter-nav top" id="nav-top"></nav>
+      <article class="article-body" id="article-body"></article>
+      <nav class="chapter-nav bottom" id="nav-bottom"></nav>
+    </div>
+  </section>
+
+  <script>
+    /*
+      只需要修改下方設定：
+      1. AUTHOR_ID：作者 ID。
+      2. API_URL：Cloudflare Worker 的網址（結尾不要加斜線）。
+      3. WORKS：作品目錄。每篇 id 必須與 Worker 後台的 id 完全相同。
+      4. 單章作品 chapters 只放一章；多章作品按閱讀順序排列。
+      密碼與正文不放在這個 HTML，避免訪客從公開 GitHub 原始碼直接取得。
+    */
+    const CONFIG = {
+      AUTHOR_ID: "YOUR AUTHOR ID",
+      API_URL: "https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev",
+      WORKS: [
+        {
+          id: "story-one",
+          title: "作品標題示例",
+          summary: "在這裡放一句話的作品簡介。",
+          chapters: [
+            { id: "chapter-1", title: "第一章" }
+          ]
+        },
+        {
+          id: "story-two",
+          title: "長篇作品示例",
+          summary: "這裡是另一篇作品的一句話概述。",
+          chapters: [
+            { id: "chapter-1", title: "第一章｜序幕" },
+            { id: "chapter-2", title: "第二章｜轉折" },
+            { id: "chapter-3", title: "第三章｜尾聲" }
+          ]
+        }
+      ]
+    };
+
+    const home = document.getElementById("home");
+    const reader = document.getElementById("reader");
+    const worksRoot = document.getElementById("works");
+    const unlocked = new Map(); // 僅存在記憶體；關閉或重新載入頁面後需重新輸入密碼。
+    let current = null;
+
+    document.getElementById("author-id").textContent = CONFIG.AUTHOR_ID;
+    document.getElementById("footer-author").textContent = CONFIG.AUTHOR_ID;
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+      })[ch]);
+    }
+
+    function renderDirectory() {
+      worksRoot.innerHTML = "";
+      CONFIG.WORKS.forEach((work, workIndex) => {
+        const card = document.createElement("section");
+        card.className = "work";
+        const multi = work.chapters.length > 1;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "work-button";
+        button.innerHTML = `
+          <span>
+            <span class="work-title">${escapeHTML(work.title)}</span>
+            <span class="work-summary">${escapeHTML(work.summary)}</span>
+          </span>
+          <span class="work-meta">${multi ? "多章作品" : "單篇作品"}${multi ? '<span class="chevron">⌄</span>' : ""}</span>`;
+        card.appendChild(button);
+
+        if (multi) {
+          const list = document.createElement("div");
+          list.className = "chapter-list";
+          work.chapters.forEach((chapter, index) => {
+            const chapterButton = document.createElement("button");
+            chapterButton.type = "button";
+            chapterButton.className = "chapter-button";
+            chapterButton.innerHTML = `<span>${escapeHTML(chapter.title)}</span><span class="chapter-number">${String(index+1).padStart(2,"0")}</span>`;
+            chapterButton.addEventListener("click", () => openGate(workIndex, index, card));
+            list.appendChild(chapterButton);
+          });
+          card.appendChild(list);
+          button.addEventListener("click", () => {
+            card.classList.toggle("open");
+            const gate = card.querySelector(".gate");
+            if (gate) gate.classList.remove("visible");
+          });
+        } else {
+          button.addEventListener("click", () => openGate(workIndex, 0, card));
+        }
+
+        const gate = document.createElement("div");
+        gate.className = "gate";
+        gate.innerHTML = `
+          <p class="gate-title">輸入閱讀密碼</p>
+          <p class="hint">${escapeHTML(work.hint || "請輸入作者提供的密碼。")}</p>
+          <form class="gate-row">
+            <input type="password" inputmode="text" autocomplete="off" maxlength="10"
+              pattern="[A-Za-z0-9]{1,10}" placeholder="最多 10 位英文字母或數字"
+              aria-label="閱讀密碼" required>
+            <button type="submit">確認</button>
+          </form>
+          <p class="gate-error" aria-live="polite"></p>`;
+        card.appendChild(gate);
+        gate.querySelector("form").addEventListener("submit", event => {
+          event.preventDefault();
+          verifyPassword(workIndex, Number(gate.dataset.chapter || 0), gate);
+        });
+        worksRoot.appendChild(card);
+      });
+    }
+
+    function openGate(workIndex, chapterIndex, card) {
+      document.querySelectorAll(".gate.visible").forEach(el => el.classList.remove("visible"));
+      const gate = card.querySelector(".gate");
+      gate.dataset.chapter = String(chapterIndex);
+      gate.dataset.attempts = "0";
+      gate.querySelector("input").value = "";
+      gate.querySelector(".gate-error").textContent = "";
+      gate.classList.add("visible");
+      gate.querySelector("input").focus();
+      gate.dataset.work = String(workIndex);
+    }
+
+    async function verifyPassword(workIndex, chapterIndex, gate) {
+      const input = gate.querySelector("input");
+      const error = gate.querySelector(".gate-error");
+      const password = input.value.trim();
+      if (!/^[A-Za-z0-9]{1,10}$/.test(password)) {
+        error.textContent = "密碼只能包含 1–10 位英文字母或數字。";
+        return;
+      }
+      const submit = gate.querySelector("button");
+      submit.disabled = true;
+      submit.textContent = "確認中…";
+      error.textContent = "";
+      const work = CONFIG.WORKS[workIndex];
+      try {
+        const response = await fetch(`${CONFIG.API_URL}/api/unlock`, {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({workId:work.id, password})
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "密碼錯誤");
+        unlocked.set(work.id, data);
+        showChapter(workIndex, chapterIndex);
+      } catch (err) {
+        const attempts = Number(gate.dataset.attempts || 0) + 1;
+        gate.dataset.attempts = String(attempts);
+        input.value = "";
+        if (attempts >= 2) {
+          gate.classList.remove("visible");
+          error.textContent = "";
+          window.scrollTo({top:0,behavior:"smooth"});
+          alert("密碼錯誤兩次，已返回主目錄。");
+        } else {
+          error.textContent = "密碼不正確，還可嘗試一次。";
+          input.focus();
+        }
+      } finally {
+        submit.disabled = false;
+        submit.textContent = "確認";
+      }
+    }
+
+    function showChapter(workIndex, chapterIndex) {
+      const work = CONFIG.WORKS[workIndex];
+      const data = unlocked.get(work.id);
+      const chapter = work.chapters[chapterIndex];
+      const bodyText = data.chapters?.[chapter.id];
+      if (typeof bodyText !== "string") {
+        alert("後台尚未找到這一章的內容，請聯絡作者。");
+        return;
+      }
+      current = {workIndex, chapterIndex};
+      home.classList.add("hidden");
+      reader.classList.add("active");
+      reader.classList.remove("night");
+      document.getElementById("reader-title").textContent =
+        work.chapters.length > 1 ? `${work.title}｜${chapter.title}` : work.title;
+      document.getElementById("article-body").textContent = bodyText;
+      renderChapterNav();
+      window.scrollTo(0,0);
+    }
+
+    function renderChapterNav() {
+      const {workIndex, chapterIndex} = current;
+      const work = CONFIG.WORKS[workIndex];
+      const top = document.getElementById("nav-top");
+      const bottom = document.getElementById("nav-bottom");
+      top.innerHTML = ""; bottom.innerHTML = "";
+      if (work.chapters.length <= 1) return;
+      [top,bottom].forEach(nav => {
+        const prev = document.createElement("button");
+        prev.type = "button";
+        prev.textContent = "← 上一章";
+        prev.disabled = chapterIndex === 0;
+        prev.addEventListener("click", () => showChapter(workIndex, chapterIndex-1));
+        const next = document.createElement("button");
+        next.type = "button";
+        next.textContent = "下一章 →";
+        next.disabled = chapterIndex === work.chapters.length-1;
+        next.addEventListener("click", () => showChapter(workIndex, chapterIndex+1));
+        nav.append(prev,next);
+      });
+    }
+
+    document.getElementById("return-home").addEventListener("click", () => {
+      current = null;
+      reader.classList.remove("active","night");
+      home.classList.remove("hidden");
+      window.scrollTo(0,0);
+    });
+    document.getElementById("night-toggle").addEventListener("click", () => {
+      reader.classList.toggle("night");
+      document.getElementById("night-toggle").textContent =
+        reader.classList.contains("night") ? "切換紙白模式" : "切換深夜模式";
+    });
+
+    // 轻度防复制措施：不等同于真正的 DRM，无法阻止截图、拍照或技术性提取。
+    document.addEventListener("contextmenu", e => { if (reader.classList.contains("active")) e.preventDefault(); });
+    document.addEventListener("copy", e => { if (reader.classList.contains("active")) e.preventDefault(); });
+    document.addEventListener("cut", e => { if (reader.classList.contains("active")) e.preventDefault(); });
+    document.addEventListener("selectstart", e => { if (reader.classList.contains("active")) e.preventDefault(); });
+    document.addEventListener("keydown", e => {
+      if (!reader.classList.contains("active")) return;
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && ["c","x","a","s","p","u"].includes(key)) e.preventDefault();
+    });
+
+    renderDirectory();
+  </script>
+</body>
+</html>
