@@ -16,7 +16,7 @@
     }
     * { box-sizing:border-box; }
     body { position:relative; }
-    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.22; background-image:repeating-conic-gradient(#B9B0A5 0% 50%,transparent 0% 50%); background-size:50px 25px; }
+    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.22; background-image:repeating-conic-gradient(#B9B0A5 0% 25%,transparent 0% 50%); background-size:84px 84px; }
     body > * { position:relative; z-index:1; }
     html { background:var(--paper); scroll-behavior:smooth; }
     body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--serif); }
@@ -91,13 +91,7 @@
     }
     /* 轻度防复制：只能提高门槛，不能阻止截图、开发者工具或网络请求查看。 */
     body, .article-body { -webkit-touch-callout:none; }
-    h1,.work-title,.gate-title, title { font-weight:600; }
-    .chapter-list.spa-track-list { position:relative; display:none; padding:0 0 18px; }
-    .work.open .chapter-list.spa-track-list { display:block; }
-    .spa-track { position:absolute; top:0; left:50%; transform:translateX(-50%); width:clamp(90px,25%,160px); pointer-events:none; z-index:0; }
-    .chapter-list.spa-track-list .chapter-button { position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1fr) clamp(90px,25%,160px) auto; align-items:center; height:64px; min-height:64px; padding:11px 12px; border-left:0; background:transparent; }
-    .chapter-list.spa-track-list .chapter-button > span:first-child { grid-column:1; }
-    .chapter-list.spa-track-list .chapter-button .chapter-number { grid-column:3; padding-left:0; }
+    h1,.work-title,.gate-title, h2 { font-weight:600; }
   </style>
 </head>
 <body>
@@ -194,19 +188,6 @@
 
         if (multi) {
           const list = document.createElement("div");
-          list.className = "chapter-list spa-track-list";
-          const rowHeight = 64;
-          const trackHeight = work.chapters.length * rowHeight;
-          list.classList.add("spa-track-list");
-          const track = document.createElementNS("http://www.w3.org/2000/svg","svg");
-          track.setAttribute("class","spa-track");
-          track.setAttribute("viewBox","0 0 180 640");
-          track.setAttribute("preserveAspectRatio","none");
-          track.setAttribute("aria-hidden","true");
-          const spaPath = "M90 12 C125 8 151 22 155 53 L160 90 C164 112 149 127 128 139 L105 153 C87 166 86 187 103 205 L135 239 C150 257 145 276 128 291 L105 309 C89 325 93 345 111 359 L145 386 C161 403 155 423 137 436 L112 454 C94 469 98 489 115 505 L143 532 C158 550 147 572 127 581 L105 592 C91 600 91 618 90 628";
-          track.style.height = trackHeight + "px";
-          track.innerHTML = `<path d="${spaPath}" fill="none" stroke="#4B4945" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/><path d="${spaPath}" fill="none" stroke="#FFFCF6" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="${spaPath}" fill="none" stroke="#23864A" stroke-width="2.5" stroke-linecap="round" transform="translate(-5 0)"/><path d="${spaPath}" fill="none" stroke="#F07832" stroke-width="2.5" stroke-linecap="round" transform="translate(5 0)"/>`;
-          list.appendChild(track);
           work.chapters.forEach((chapter, index) => {
             const chapterButton = document.createElement("button");
             chapterButton.type = "button";
