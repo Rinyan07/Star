@@ -69,7 +69,7 @@
     .chapter-nav.bottom { margin:36px 0 0; }
     .chapter-nav button { border:0; background:transparent; color:var(--muted); padding:8px 0; font:12px var(--sans); }
     .chapter-nav button:disabled { visibility:hidden; }
-    .article-body { font:16px/1.7 var(--serif); white-space:pre-wrap; overflow-wrap:anywhere; user-select:none; -webkit-user-select:none; }
+    .article-body { font:16px/2.0 var(--serif); white-space:pre-wrap; overflow-wrap:anywhere; user-select:none; -webkit-user-select:none; }
     .article-body p { margin:0 0 1em; }
     .reader.night { --reader-bg:#201e1b; --reader-ink:#e9e0d5; --line:#49423b; }
     .reader.night .back-button { background:#39332d; color:#e9e0d5; }
@@ -85,7 +85,7 @@
       .work-button { padding:19px 2px; }
       .work-title { font-size:16px; }
       .reader-inner { width:calc(100% - 34px); }
-      .article-body { font-size:16px; line-height:1.7; }
+      .article-body { font-size:16px; line-height:2.0; }
       .gate-row { flex-direction:column; }
       .gate button { min-height:42px; }
     }
@@ -244,7 +244,7 @@
       }
       const submit = gate.querySelector("button");
       submit.disabled = true;
-      submit.textContent = "確認中…";
+      submit.textContent = "确认中…";
       error.textContent = "";
       const work = CONFIG.WORKS[workIndex];
       try {
