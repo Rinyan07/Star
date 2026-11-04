@@ -24,7 +24,7 @@
     .author { font:600 15px var(--sans); letter-spacing:.12em; }
     .top-note { color:var(--muted); font:12px var(--sans); letter-spacing:.08em; }
     .intro { padding:64px 0 34px; }
-    .eyebrow { color:var(--ln4); font:600 11px var(--sans); letter-spacing:.2em; text-transform:uppercase; }
+    .eyebrow { color:var(--ln4); font:600 13px var(--sans); letter-spacing:.2em; text-transform:uppercase; }
     .text-outline { -webkit-text-stroke: 1px #000; paint-order: stroke fill; }
     h1 { margin:12px 0 10px; font:500 clamp(28px,5vw,42px) var(--sans); letter-spacing:.06em; }
     .intro p { color:var(--muted); font-size:14px; line-height:1.9; margin:0; }
@@ -196,6 +196,7 @@
           button.addEventListener("click", () => {
             card.classList.toggle("open");
             const gate = card.querySelector(".gate");
+            const chapterButton = card.querySelectorAll(".chapter-button")[chapterIndex]; if (chapterButton) chapterButton.after(gate);
             if (gate) gate.classList.remove("visible");
           });
         } else {
