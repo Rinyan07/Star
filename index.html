@@ -86,6 +86,7 @@
     }
     /* 轻度防复制：只能提高门槛，不能阻止截图、开发者工具或网络请求查看。 */
     body, .article-body { -webkit-touch-callout:none; }
+    h1,.work-title,.gate-title { font-family:var(--sans); font-size:18px; font-weight:500; }
   </style>
 </head>
 <body>
@@ -213,7 +214,7 @@
             <button type="submit">确认</button>
           </form>
           <p class="gate-error" aria-live="polite"></p>`;
-        card.querySelector(".chapter-list")?.insertBefore(gate, card.querySelectorAll(".chapter-button")[Number(gate.dataset.chapter || 0)].nextSibling);
+        card.appendChild(gate);
         gate.querySelector("form").addEventListener("submit", event => {
           event.preventDefault();
           verifyPassword(workIndex, Number(gate.dataset.chapter || 0), gate);
@@ -225,6 +226,7 @@
     function openGate(workIndex, chapterIndex, card) {
       document.querySelectorAll(".gate.visible").forEach(el => el.classList.remove("visible"));
       const gate = card.querySelector(".gate");
+      const chapterButton = card.querySelectorAll(".chapter-button")[chapterIndex]; if (chapterButton) chapterButton.after(gate);
       gate.dataset.chapter = String(chapterIndex);
       gate.dataset.attempts = "0";
       gate.querySelector("input").value = "";
