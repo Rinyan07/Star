@@ -213,7 +213,7 @@
             <button type="submit">确认</button>
           </form>
           <p class="gate-error" aria-live="polite"></p>`;
-        card.appendChild(gate);
+        card.querySelector(".chapter-list")?.insertBefore(gate, card.querySelectorAll(".chapter-button")[Number(gate.dataset.chapter || 0)].nextSibling);
         gate.querySelector("form").addEventListener("submit", event => {
           event.preventDefault();
           verifyPassword(workIndex, Number(gate.dataset.chapter || 0), gate);
