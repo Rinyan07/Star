@@ -16,7 +16,7 @@
     }
     * { box-sizing:border-box; }
     body { position:relative; }
-    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.22; background-image:repeating-conic-gradient(#B9B0A5 0% 25%,transparent 0% 50%); background-size:84px 84px; }
+    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.22; }
     body > * { position:relative; z-index:1; }
     html { background:var(--paper); scroll-behavior:smooth; }
     body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--serif); }
@@ -187,25 +187,15 @@
         card.appendChild(button);
 
         if (multi) {
-          const list = document.createElement("div");
-          work.chapters.forEach((chapter, index) => {
-            const chapterButton = document.createElement("button");
-            chapterButton.type = "button";
-            chapterButton.className = "chapter-button";
-            chapterButton.innerHTML = `<span>${escapeHTML(chapter.title)}</span><span class="chapter-number">${String(index+1).padStart(2,"0")}</span>`;
-            chapterButton.addEventListener("click", () => openGate(workIndex, index, card));
-            list.appendChild(chapterButton);
-          });
-          card.appendChild(list);
-          button.addEventListener("click", () => {
-            card.classList.toggle("open");
-            const gate = card.querySelector(".gate");
-            const chapterButton = card.querySelectorAll(".chapter-button")[chapterIndex]; if (chapterButton) chapterButton.after(gate);
-            if (gate) gate.classList.remove("visible");
-          });
-        } else {
-          button.addEventListener("click", () => openGate(workIndex, 0, card));
-        }
+        const list = document.createElement("div"); list.className = "chapter-list";
+        work.chapters.forEach((chapter, index) => {
+        const chapterButton = document.createElement("button"); chapterButton.type = "button"; chapterButton.className = "chapter-button";
+        chapterButton.innerHTML = `<span>${escapeHTML(chapter.title)}</span><span class="chapter-number">${String(index+1).padStart(2,"0")}</span>`;
+        chapterButton.addEventListener("click", () => openGate(workIndex, index, card)); list.appendChild(chapterButton);
+  });
+        card.appendChild(list);
+        button.addEventListener("click", () => { card.classList.toggle("open"); const gate = card.querySelector(".gate"); if (gate) gate.classList.remove("visible"); });
+  } else { button.addEventListener("click", () => openGate(workIndex, 0, card)); }
 
         const gate = document.createElement("div");
         gate.className = "gate";
