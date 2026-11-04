@@ -261,6 +261,7 @@
         unlocked.set(work.id, data);
         showChapter(workIndex, chapterIndex);
       } catch (err) {
+        console.error("解锁失败：", err);
         const attempts = Number(gate.dataset.attempts || 0) + 1;
         gate.dataset.attempts = String(attempts);
         input.value = "";
