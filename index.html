@@ -10,7 +10,7 @@
   <style>
     :root {
       --paper:#FFFCF6; --ink:#000000; --linen:#FAF0E6;
-      --peach:#FFDAB9; --papaya:#FF7F00; --muted:#786f67;
+      --peach:#FFDAB9; --papaya:#FF7F00; --muted:#786f67; --ln4:#D6FE07;
       --line:#e8ded2; --reader-bg:#FFFCF6; --reader-ink:#171411;
       --serif:"Noto Serif SC",serif; --sans:"Noto Sans TC",sans-serif;
     }
@@ -24,7 +24,7 @@
     .author { font:600 15px var(--sans); letter-spacing:.12em; }
     .top-note { color:var(--muted); font:12px var(--sans); letter-spacing:.08em; }
     .intro { padding:64px 0 34px; }
-    .eyebrow { color:var(--papaya); font:600 11px var(--sans); letter-spacing:.2em; text-transform:uppercase; }
+    .eyebrow { color:var(--ln4); font:600 11px var(--sans); letter-spacing:.2em; text-transform:uppercase; }
     h1 { margin:12px 0 10px; font:500 clamp(28px,5vw,42px) var(--sans); letter-spacing:.06em; }
     .intro p { color:var(--muted); font-size:14px; line-height:1.9; margin:0; }
     .section-heading { display:flex; align-items:center; gap:14px; margin:18px 0 12px; font:500 12px var(--sans); letter-spacing:.16em; }
@@ -94,9 +94,9 @@
       <div class="top-note">PRIVATE LIBRARY · FICTION</div>
     </header>
     <section class="intro">
-      <div class="eyebrow">A QUIET CORNER FOR STORIES</div>
+      <div class="eyebrow">F1 World Champion 🏆 Lando Norris 生日快乐！</div>
       <h1>作品目录</h1>
-      <p>把故事放在这里。选择篇名或章节，并输入对应密码即可阅读。</p>
+      <p>选择篇名或章节，并输入对应密码即可阅读。</p>
     </section>
     <div class="section-heading">全部作品</div>
     <section id="works" aria-label="作品目录"></section>
@@ -106,7 +106,7 @@
   <section id="reader" class="reader" aria-label="文章阅读区">
     <div class="reader-inner">
       <div class="reader-toolbar">
-        <button class="back-button" id="return-home" type="button">← 返回目录</button>
+        <button class="back-button" id="return-home" type="button">← 返回主目录</button>
         <button class="mode-button" id="night-toggle" type="button">切换深夜模式</button>
       </div>
       <h2 id="reader-title"></h2>
@@ -180,7 +180,7 @@
             <span class="work-title">${escapeHTML(work.title)}</span>
             <span class="work-summary">${escapeHTML(work.summary)}</span>
           </span>
-          <span class="work-meta">${multi ? "多章作品" : "單篇作品"}${multi ? '<span class="chevron">⌄</span>' : ""}</span>`;
+          <span class="work-meta">${multi ? "多章作品" : "单章作品"}${multi ? '<span class="chevron">⌄</span>' : ""}</span>`;
         card.appendChild(button);
 
         if (multi) {
@@ -207,13 +207,13 @@
         const gate = document.createElement("div");
         gate.className = "gate";
         gate.innerHTML = `
-          <p class="gate-title">輸入閱讀密碼</p>
-          <p class="hint">${escapeHTML(work.hint || "請輸入作者提供的密碼。")}</p>
+          <p class="gate-title">请输入阅读密码</p>
+          <p class="hint">${escapeHTML(work.hint || "密码提示见原帖。")}</p>
           <form class="gate-row">
             <input type="password" inputmode="text" autocomplete="off" maxlength="10"
-              pattern="[A-Za-z0-9]{1,10}" placeholder="最多 10 位英文字母或數字"
-              aria-label="閱讀密碼" required>
-            <button type="submit">確認</button>
+              pattern="[A-Za-z0-9]{1,10}" placeholder="最多 10 位英文字母或数字"
+              aria-label="阅读密码" required>
+            <button type="submit">确认</button>
           </form>
           <p class="gate-error" aria-live="polite"></p>`;
         card.appendChild(gate);
@@ -242,7 +242,7 @@
       const error = gate.querySelector(".gate-error");
       const password = input.value.trim();
       if (!/^[A-Za-z0-9]{1,10}$/.test(password)) {
-        error.textContent = "密碼只能包含 1–10 位英文字母或數字。";
+        error.textContent = "密码只能包含 1–10 位英文字母或数字。";
         return;
       }
       const submit = gate.querySelector("button");
@@ -257,7 +257,7 @@
           body:JSON.stringify({workId:work.id, password})
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "密碼錯誤");
+        if (!response.ok) throw new Error(data.error || "密码错误");
         unlocked.set(work.id, data);
         showChapter(workIndex, chapterIndex);
       } catch (err) {
@@ -269,14 +269,14 @@
           gate.classList.remove("visible");
           error.textContent = "";
           window.scrollTo({top:0,behavior:"smooth"});
-          alert("密碼錯誤兩次，已返回主目錄。");
+          alert("请看原贴密码提示。");
         } else {
-          error.textContent = "密碼不正確，還可嘗試一次。";
+          error.textContent = "密码不正确。";
           input.focus();
         }
       } finally {
         submit.disabled = false;
-        submit.textContent = "確認";
+        submit.textContent = "确认";
       }
     }
 
@@ -286,7 +286,7 @@
       const chapter = work.chapters[chapterIndex];
       const bodyText = data.chapters?.[chapter.id];
       if (typeof bodyText !== "string") {
-        alert("後台尚未找到這一章的內容，請聯絡作者。");
+        alert("后台尚未找到这一章的內容，请联系作者。");
         return;
       }
       current = {workIndex, chapterIndex};
@@ -331,7 +331,7 @@
     document.getElementById("night-toggle").addEventListener("click", () => {
       reader.classList.toggle("night");
       document.getElementById("night-toggle").textContent =
-        reader.classList.contains("night") ? "切換紙白模式" : "切換深夜模式";
+        reader.classList.contains("night") ? "切换白天模式" : "切换深夜模式";
     });
 
     // 轻度防复制措施：不等同于真正的 DRM，无法阻止截图、拍照或技术性提取。
