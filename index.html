@@ -15,6 +15,9 @@
       --serif:"Noto Serif SC",serif; --sans:"Noto Sans TC",sans-serif;
     }
     * { box-sizing:border-box; }
+    body { position:relative; }
+    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.22; background-image:repeating-conic-gradient(#B9B0A5 0% 25%,transparent 0% 50%); background-size:28px 28px; }
+    body > * { position:relative; z-index:1; }
     html { background:var(--paper); scroll-behavior:smooth; }
     body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--serif); }
     button,input { font:inherit; }
@@ -32,6 +35,8 @@
     .section-heading:after { content:""; height:1px; background:var(--line); flex:1; }
     #works { padding-bottom:90px; }
     .work { border-bottom:1px solid var(--line); }
+    .work { position:relative; }
+    .work:not(:last-child)::after { content:"♢Landoscar♦"; position:absolute; right:0; bottom:-8px; padding:0 8px; background:var(--paper); color:#9A755F; font:11px var(--sans); letter-spacing:.04em; }
     .work-button { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; width:100%; padding:23px 4px; border:0; background:transparent; color:inherit; text-align:left; }
     .work-button:hover .work-title { color:var(--papaya); }
     .work-title { display:block; font:500 18px/1.55 var(--sans); transition:color .15s; }
@@ -44,6 +49,9 @@
     .chapter-button { display:flex; justify-content:space-between; width:100%; padding:11px 12px; border:0; border-left:2px solid var(--peach); background:transparent; color:var(--ink); text-align:left; font:13px/1.7 var(--sans); }
     .chapter-button:hover { background:var(--linen); }
     .chapter-number { color:var(--muted); font-size:11px; padding-left:12px; }
+    .chapter-list.spa-track-list { position:relative; padding-left:62px; }
+    .spa-track { position:absolute; left:0; top:0; width:54px; height:100%; overflow:visible; pointer-events:none; }
+    .chapter-list.spa-track-list .chapter-button { position:relative; height:52px; min-height:52px; padding-left:12px; }
     .gate { display:none; margin:0 0 22px; padding:20px; background:var(--linen); border:1px solid #eadbc9; }
     .gate.visible { display:block; }
     .gate-title { margin:0 0 7px; font:500 15px var(--sans); }
@@ -86,7 +94,7 @@
     }
     /* 轻度防复制：只能提高门槛，不能阻止截图、开发者工具或网络请求查看。 */
     body, .article-body { -webkit-touch-callout:none; }
-    h1,.work-title,.gate-title { font-weight:600; }
+    h1,.work-title,.gate-title, title { font-weight:600; }
   </style>
 </head>
 <body>
@@ -183,7 +191,16 @@
 
         if (multi) {
           const list = document.createElement("div");
-          list.className = "chapter-list";
+          list.className = "chapter-list spa-track-list";
+          const trackHeight = work.chapters.length * 52;
+          const track = document.createElementNS("http://www.w3.org/2000/svg","svg");
+          track.setAttribute("class","spa-track");
+          track.setAttribute("viewBox",`0 0 120 ${trackHeight}`);
+          track.setAttribute("preserveAspectRatio","none");
+          const trackPoints = Array.from({length:work.chapters.length},(_,i)=>({x:60+Math.sin(i*1.7)*32,y:i*52+26}));
+          const trackPath = trackPoints.map((p,i)=>`${i===0?"M":"L"} ${p.x} ${p.y}`).join(" ");
+          track.innerHTML = `<path d="${trackPath}" fill="none" stroke="#23864A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="${trackPoints.map((p,i)=>`${i===0?"M":"L"} ${120-p.x} ${p.y}`).join(" ")}" fill="none" stroke="#F07832" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+          list.appendChild(track);
           work.chapters.forEach((chapter, index) => {
             const chapterButton = document.createElement("button");
             chapterButton.type = "button";
@@ -226,15 +243,18 @@
 
     function openGate(workIndex, chapterIndex, card) {
   const gate = card.querySelector(".gate");
-  if (gate.classList.contains("visible") && Number(gate.dataset.work) === workIndex && Number(gate.dataset.chapter) === chapterIndex) { gate.classList.remove("visible"); return; }
+  const chapterButton = card.querySelectorAll(".chapter-button")[chapterIndex];
+  const isSame = gate.classList.contains("visible") && Number(gate.dataset.work) === workIndex && Number(gate.dataset.chapter) === chapterIndex;
   document.querySelectorAll(".gate.visible").forEach(el => el.classList.remove("visible"));
+  if (isSame) return;
+  if (chapterButton) chapterButton.after(gate);
   gate.dataset.chapter = String(chapterIndex);
   gate.dataset.attempts = "0";
+  gate.dataset.work = String(workIndex);
   gate.querySelector("input").value = "";
   gate.querySelector(".gate-error").textContent = "";
   gate.classList.add("visible");
   gate.querySelector("input").focus();
-  gate.dataset.work = String(workIndex);
 }
 
     async function verifyPassword(workIndex, chapterIndex, gate) {
