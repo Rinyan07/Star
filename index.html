@@ -224,18 +224,17 @@
     }
 
     function openGate(workIndex, chapterIndex, card) {
-      document.querySelectorAll(".gate.visible").forEach(el => el.classList.remove("visible"));
-      if (gate.classList.contains("visible")) { gate.classList.remove("visible"); return; }
-      const gate = card.querySelector(".gate");
-      const chapterButton = card.querySelectorAll(".chapter-button")[chapterIndex]; if (chapterButton) chapterButton.after(gate);
-      gate.dataset.chapter = String(chapterIndex);
-      gate.dataset.attempts = "0";
-      gate.querySelector("input").value = "";
-      gate.querySelector(".gate-error").textContent = "";
-      gate.classList.add("visible");
-      gate.querySelector("input").focus();
-      gate.dataset.work = String(workIndex);
-    }
+  const gate = card.querySelector(".gate");
+  if (gate.classList.contains("visible") && Number(gate.dataset.work) === workIndex && Number(gate.dataset.chapter) === chapterIndex) { gate.classList.remove("visible"); return; }
+  document.querySelectorAll(".gate.visible").forEach(el => el.classList.remove("visible"));
+  gate.dataset.chapter = String(chapterIndex);
+  gate.dataset.attempts = "0";
+  gate.querySelector("input").value = "";
+  gate.querySelector(".gate-error").textContent = "";
+  gate.classList.add("visible");
+  gate.querySelector("input").focus();
+  gate.dataset.work = String(workIndex);
+}
 
     async function verifyPassword(workIndex, chapterIndex, gate) {
       const input = gate.querySelector("input");
