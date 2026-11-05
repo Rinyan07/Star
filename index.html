@@ -116,19 +116,12 @@
     .confetti-piece { position:fixed; top:-15px; width:5px; height:11px; z-index:9999; pointer-events:none; animation:confetti-fall 2s ease-in forwards; border-radius:2px; }
     @keyframes confetti-fall { 0% { transform:translate(0,0) rotate(0); opacity:1; } 100% { transform:translate(var(--drift),105vh) rotate(var(--spin)); opacity:0; } }
     /* 彩带动画容器：固定定位、穿透鼠标点击、支持溢出显示 */
-.popper-ribbon { position: fixed; z-index: 9999; pointer-events: none; overflow: visible; animation: popper-fly 1.9s cubic-bezier(.12,.65,.35,1) forwards; }
-/* 大号彩带尺寸：适用于螺旋状 */
-.popper-ribbon.large { width: 48px; height: 48px; }
-/* 中号彩带尺寸：适用于波浪/卷曲状 */
-.popper-ribbon.medium { width: 38px; height: 18px; }
-/* 小号彩带尺寸：适用于碎屑/长方形 */
-.popper-ribbon.small { width: 16px; height: 12px; }
-/* SVG 填满容器并允许溢出 */
-.popper-ribbon svg { width: 100%; height: 100%; overflow: visible; }
-/* 大号与中号彩带采用描边样式（空心弧线） */
-.popper-ribbon.large path, .popper-ribbon.medium path { fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
-/* 小号碎屑采用实心填充样式 */
-.popper-ribbon.small path { fill: currentColor; stroke: none; }
+    .popper-ribbon { position:fixed; z-index:9999; pointer-events:none; overflow:visible; animation:popper-fly 1.9s cubic-bezier(.12,.65,.35,1) forwards; }
+    .popper-ribbon.large { width:19px; height:19px; }
+    .popper-ribbon.medium { width:14px; height:11px; }
+    .popper-ribbon.small { width:7px; height:11px; }
+    .popper-ribbon svg { width:100%; height:100%; overflow:visible; }
+    .popper-ribbon path { stroke-linecap:round; stroke-linejoin:round; }
     @keyframes popper-fly { 0% { transform:translate(0,0) rotate(var(--rotate)) scale(.35); opacity:0; } 12% { opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) rotate(var(--spin)) scale(1); opacity:0; } }
     /* 以上为生日礼花相关，过了需要删除。 */
   </style>
@@ -180,6 +173,14 @@
         {
           id: "story-one",
           title: "[无差]在每一个宇宙都爱上你——南洋夏",
+          summary: "阳光照在他的发顶，呈现隐约的金色，水珠挂在身上，欲顺着腹肌线条滴落。",
+          chapters: [
+            { id: "chapter-1", title: "一发完" }
+          ]
+        },
+        {
+          id: "story-three",
+          title: "[无差]共感假日",
           summary: "Oscar从未遇到过这样直率的人，唇瓣张张合合，不知再夸奖他什么才不会显得越界无礼。",
           chapters: [
             { id: "chapter-1", title: "一发完" }
@@ -404,50 +405,41 @@
     });
 
     /* 以下为生日礼花相关，过了需要删除。 */
-    function celebrate() { const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"]; for(let i=0;i<48;i++){const p=document.createElement("i");p.className="confetti-piece";p.style.left=Math.random()*100+"vw";p.style.background=colors[i%5];p.style.setProperty("--drift",(Math.random()*180-90)+"px");p.style.setProperty("--spin",(Math.random()*900-450)+"deg");p.style.animationDelay=Math.random()*.35+"s";document.body.appendChild(p);setTimeout(()=>p.remove(),2400);}}
-    window.addEventListener("load",()=>{setTimeout(celebrate,200);setTimeout(celebratePopper,300);}); const birthdayLine=document.querySelector(".eyebrow"); birthdayLine.addEventListener("mouseenter",()=>{celebrate();celebratePopper();}); birthdayLine.addEventListener("touchstart",()=>{celebrate();celebratePopper();},{passive:true});
     function celebratePopper(){
-      const line=document.querySelector(".eyebrow");
-      if(!line)return;
-      const rect=line.getBoundingClientRect();
-      const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"];
-      const shapes = [
-    // 1. 大螺旋状 (Large Spirals)
-    "M24 20 A 10 10 0 1 1 14 10 A 6 6 0 1 1 20 16",
-    "M22 18 A 8 8 0 1 1 14 10 A 4 4 0 1 1 18 14",
-
-    // 2. 中等卷曲彩带 (Medium Curvy Ribbons)
-    "M2 13 Q10 8 18 13 T34 11",
-    "M2 11 Q12 16 22 11 T36 14",
-    "M2 12 Q11 7 20 12 T35 11",
-
-    // 3. 小长方形 / 碎屑 (Small Rectangles)
-    "M6 10 L14 10 L14 14 L6 14 Z",
-    "M8 8 L14 12 L12 16 L6 12 Z",
-    "M10 12 L16 8 L18 12 L12 16 Z"
-    ];
-      [rect.left+25,rect.right-45].forEach((x,side)=>{
-        for(let i=0;i<10;i++){
-          const el=document.createElement("span");
-          const color=colors[Math.floor(Math.random()*colors.length)];
-          const shape=shapes[Math.floor(Math.random()*shapes.length)];
-          const angle=25+Math.random()*55;
-          const distance=65+Math.random()*95;
-          const rad=angle*Math.PI/180;
-          el.className="popper-ribbon";
-          el.style.left=x+"px";
-          el.style.top=(rect.top-12)+"px";
-          el.style.setProperty("--dx",(side===0?-1:1)*Math.cos(rad)*distance+"px");
-          el.style.setProperty("--dy",-Math.sin(rad)*distance-18+"px");
-          el.style.setProperty("--rotate",(Math.random()*90-45)+"deg");
-          el.style.setProperty("--spin",(Math.random()*300-150)+"deg");
-          el.style.animationDelay=Math.random()*.22+"s";
-          el.innerHTML=`<svg viewBox="0 0 40 24"><path d="${shape}" stroke="${color}"/></svg>`;
-          document.body.appendChild(el);
-          setTimeout(()=>el.remove(),2300);
-        }
-      });
+  const line=document.querySelector(".eyebrow");
+  if(!line)return;
+  const rect=line.getBoundingClientRect();
+  const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"];
+  const shapes=[
+    {size:"large",svg:'<path d="M10 9 C4 8 5 2 10 3 C15 4 15 10 10 13 C7 15 4 13 5 11" fill="none" stroke="COLOR" stroke-width="2.8"/>'},
+    {size:"small",svg:'<path d="M5 2 L12 3 L10 13 L4 12 Z" fill="COLOR"/>'},
+    {size:"medium",svg:'<path d="M1 7 Q4 3 7 6 L10 8 Q12 9 14 5 L13 10 Q10 13 7 9 L4 8 Z" fill="COLOR"/>'},
+    {size:"small",svg:'<path d="M3 2 L10 1 L12 10 L5 11 Z" fill="COLOR"/>'},
+    {size:"medium",svg:'<path d="M1 4 Q4 1 7 5 L10 8 Q12 10 14 6 L13 10 Q10 13 7 9 L4 7 Z" fill="COLOR"/>'},
+    {size:"large",svg:'<path d="M4 11 C2 7 5 3 9 4 C13 5 14 9 11 12 C9 14 6 13 6 10" fill="none" stroke="COLOR" stroke-width="2.5"/>'}
+  ];
+  [rect.left+8,rect.right-25].forEach((x,side)=>{
+    for(let i=0;i<17;i++){
+      const el=document.createElement("span");
+      const shape=shapes[Math.floor(Math.random()*shapes.length)];
+      const color=colors[Math.floor(Math.random()*colors.length)];
+      const angle=25+Math.random()*65;
+      const distance=65+Math.random()*115;
+      const rad=angle*Math.PI/180;
+      el.className="popper-ribbon "+shape.size;
+      el.style.left=(x+(Math.random()*18-9))+"px";
+      el.style.top=(rect.top-12+(Math.random()*12-6))+"px";
+      el.style.setProperty("--dx",(side===0?-1:1)*Math.cos(rad)*distance+"px");
+      el.style.setProperty("--dy",-Math.sin(rad)*distance-20+"px");
+      el.style.setProperty("--rotate",(Math.random()*180-90)+"deg");
+      el.style.setProperty("--spin",(Math.random()*500-250)+"deg");
+      el.style.animationDelay=Math.random()*.22+"s";
+      el.innerHTML=`<svg viewBox="0 0 16 16">${shape.svg.replaceAll("COLOR",color)}</svg>`;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),2300);
     }
+  });
+}
     /* 以上为生日礼花相关，过了需要删除。 */
 
     renderDirectory();
