@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#FFFCF6">
-  <title>Rin07｜Starmio🦋</title>
+  <title>🦋Rin07｜Starmio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
     #works { padding-bottom:90px; }
     .work { border-bottom:1px solid var(--line); }
     .work { position:relative; }
-    .work:not(:last-child)::after { content:"♢Landoscar♦"; position:absolute; right:0; bottom:-8px; padding:0 8px; background:var(--paper); color:#9A755F; font:11px var(--sans); letter-spacing:.04em; }
+    .work:not(:last-child)::after { content:"LN4 X OP81"; position:absolute; right:0; bottom:-8px; padding:0 8px; background:var(--paper); color:#9A755F; font:11px var(--sans); letter-spacing:.04em; }
     .work-button { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; width:100%; padding:23px 4px; border:0; background:transparent; color:inherit; text-align:left; }
     .work-button:hover .work-title { color:var(--papaya); }
     .work-title { display:block; font:500 18px/1.55 var(--sans); transition:color .15s; }
@@ -98,15 +98,15 @@
   <main id="home" class="site-shell">
     <header class="topbar">
       <div class="author" id="author-id">AUTHOR ID</div>
-      <div class="top-note">PRIVATE LIBRARY · FICTION</div>
+      <div class="top-note">PRIVATE BOOKSHELF · FICTION</div>
     </header>
     <section class="intro">
       <div class="eyebrow text-outline">F1 World Champion 🏆 Lando Norris 生日快乐！</div>
-      <h1>作品目录</h1>
+      <h1>文章目录</h1>
       <p>选择篇名或章节，并输入对应密码即可阅读。</p>
     </section>
-    <div class="section-heading">全部作品</div>
-    <section id="works" aria-label="作品目录"></section>
+    <div class="section-heading">所有文章</div>
+    <section id="works" aria-label="文章目录"></section>
     <footer class="footer">© <span id="year"></span> <span id="footer-author">AUTHOR ID</span></footer>
   </main>
 
@@ -134,7 +134,7 @@
     */
     const CONFIG = {
       AUTHOR_ID: "Starmio🦋",
-      API_URL: "https://twilight-water-3802reader.charlotteleeli07.workers.dev",
+      API_URL: "https://twilight-water-3802reader.rin07.workers.dev/",
       WORKS: [
         {
           id: "story-one",
@@ -183,7 +183,7 @@
             <span class="work-title">${escapeHTML(work.title)}</span>
             <span class="work-summary">${escapeHTML(work.summary)}</span>
           </span>
-          <span class="work-meta">${multi ? "多章作品" : "单章作品"}${multi ? '<span class="chevron">⌄</span>' : ""}</span>`;
+          <span class="work-meta">${multi ? "短篇连载" : "一发完"}${multi ? '<span class="chevron">⌄</span>' : ""}</span>`;
         card.appendChild(button);
 
         if (multi) {
