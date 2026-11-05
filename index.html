@@ -115,9 +115,20 @@
     /* 以下为生日礼花相关，过了需要删除。 */
     .confetti-piece { position:fixed; top:-15px; width:5px; height:11px; z-index:9999; pointer-events:none; animation:confetti-fall 2s ease-in forwards; border-radius:2px; }
     @keyframes confetti-fall { 0% { transform:translate(0,0) rotate(0); opacity:1; } 100% { transform:translate(var(--drift),105vh) rotate(var(--spin)); opacity:0; } }
-    .popper-ribbon { position:fixed; z-index:9999; pointer-events:none; width:42px; height:18px; overflow:visible; animation:popper-fly 1.9s cubic-bezier(.12,.65,.35,1) forwards; }
-    .popper-ribbon svg { width:100%; height:100%; overflow:visible; }
-    .popper-ribbon path { fill:none; stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+    /* 彩带动画容器：固定定位、穿透鼠标点击、支持溢出显示 */
+.popper-ribbon { position: fixed; z-index: 9999; pointer-events: none; overflow: visible; animation: popper-fly 1.9s cubic-bezier(.12,.65,.35,1) forwards; }
+/* 大号彩带尺寸：适用于螺旋状 */
+.popper-ribbon.large { width: 48px; height: 48px; }
+/* 中号彩带尺寸：适用于波浪/卷曲状 */
+.popper-ribbon.medium { width: 38px; height: 18px; }
+/* 小号彩带尺寸：适用于碎屑/长方形 */
+.popper-ribbon.small { width: 16px; height: 12px; }
+/* SVG 填满容器并允许溢出 */
+.popper-ribbon svg { width: 100%; height: 100%; overflow: visible; }
+/* 大号与中号彩带采用描边样式（空心弧线） */
+.popper-ribbon.large path, .popper-ribbon.medium path { fill: none; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+/* 小号碎屑采用实心填充样式 */
+.popper-ribbon.small path { fill: currentColor; stroke: none; }
     @keyframes popper-fly { 0% { transform:translate(0,0) rotate(var(--rotate)) scale(.35); opacity:0; } 12% { opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) rotate(var(--spin)) scale(1); opacity:0; } }
     /* 以上为生日礼花相关，过了需要删除。 */
   </style>
@@ -401,13 +412,21 @@
       const rect=line.getBoundingClientRect();
       const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"];
       const shapes = [
-      "M2 13 Q10 10 20 13 T37 11",
-      "M2 11 Q12 14 22 11 T37 13",
-      "M2 12 Q11 9 19 12 T37 12",
-      "M2 13 Q10 11 18 13 T37 11",
-      "M2 11 Q11 13 21 11 T37 13"
-      ];
-      [rect.left+18,rect.right-30].forEach((x,side)=>{
+    // 1. 大螺旋状 (Large Spirals)
+    "M24 20 A 10 10 0 1 1 14 10 A 6 6 0 1 1 20 16",
+    "M22 18 A 8 8 0 1 1 14 10 A 4 4 0 1 1 18 14",
+
+    // 2. 中等卷曲彩带 (Medium Curvy Ribbons)
+    "M2 13 Q10 8 18 13 T34 11",
+    "M2 11 Q12 16 22 11 T36 14",
+    "M2 12 Q11 7 20 12 T35 11",
+
+    // 3. 小长方形 / 碎屑 (Small Rectangles)
+    "M6 10 L14 10 L14 14 L6 14 Z",
+    "M8 8 L14 12 L12 16 L6 12 Z",
+    "M10 12 L16 8 L18 12 L12 16 Z"
+    ];
+      [rect.left+25,rect.right-45].forEach((x,side)=>{
         for(let i=0;i<10;i++){
           const el=document.createElement("span");
           const color=colors[Math.floor(Math.random()*colors.length)];
