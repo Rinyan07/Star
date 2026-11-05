@@ -47,7 +47,7 @@
     .chapter-list { display:none; padding:0 0 18px 18px; }
     .work.open .chapter-list { display:block; }
     .chapter-button { display:flex; justify-content:space-between; width:100%; padding:11px 12px; border:0; border-left:2px solid var(--peach); background:transparent; color:var(--ink); text-align:left; font:13px/1.7 var(--sans); }
-    .chapter-button:hover { background:var(--linen); }
+    .chapter-button:hover,.chapter-button:hover .chapter-label,.chapter-button:hover .chapter-number { background:transparent; color:var(--ink); }
     .chapter-number { color:var(--muted); font-size:11px; padding-left:12px; }
     .gate { display:none; margin:0 0 22px; padding:20px; background:var(--linen); border:1px solid #eadbc9; }
     .gate.visible { display:block; }
@@ -103,13 +103,14 @@
     /*以下为赛道。*/
     .chapter-list { position:relative; }
     .chapter-button { position:relative; z-index:2; min-height:46px; }
-    .chapter-label,.chapter-number { position:relative; z-index:2; background:var(--paper); }
+    .chapter-label,.chapter-number { position:relative; z-index:2; }
     .spa-track { position:absolute; z-index:1; top:50%; left:12%; width:76%; height:230px; transform:translateY(-50%); pointer-events:none; }
     .spa-track svg { width:100%; height:100%; overflow:visible; }
     .spa-track path { fill:none; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; }
     .spa-track .track-base { stroke:var(--paper); stroke-width:10; }
-    .spa-track .track-green { stroke:#65A878; stroke-dasharray:50 50; }
+    .spa-track .track-green { stroke:var(--LN4); stroke-dasharray:50 50; }
     .spa-track .track-orange { stroke:#F2994A; stroke-dasharray:50 50; stroke-dashoffset:-50; }
+    .spa-track .track-outline { stroke:#000; stroke-width:12; }
     /* 以下为生日礼花相关，过了需要删除。 */
     .confetti-piece { position:fixed; top:-15px; width:5px; height:11px; z-index:9999; pointer-events:none; animation:confetti-fall 2s ease-in forwards; border-radius:2px; }
     @keyframes confetti-fall { 0% { transform:translate(0,0) rotate(0); opacity:1; } 100% { transform:translate(var(--drift),105vh) rotate(var(--spin)); opacity:0; } }
@@ -141,7 +142,7 @@
     <div class="reader-inner">
       <div class="reader-toolbar">
   <button class="back-button" id="return-home" type="button">← 返回目录</button>
-  <div class="reader-actions"><button class="mode-button" id="night-toggle" type="button">切换深夜模式</button><button class="mode-button" id="jump-toggle" type="button">跳转章节</button></div>
+  <div class="reader-actions"><button class="mode-button" id="jump-toggle" type="button">跳转章节</button><button class="mode-button" id="night-toggle" type="button">切换深夜模式</button></div>
 </div>
 <div class="jump-menu" id="jump-menu"></div>
       <h2 id="reader-title"></h2>
@@ -223,7 +224,7 @@
         chapterButton.addEventListener("click", () => openGate(workIndex, index, card)); list.appendChild(chapterButton);
   });
         card.appendChild(list);
-        if(work.chapters.length>4){const track=document.createElement("div");track.className="spa-track";track.innerHTML=`<svg viewBox="0 0 340 180" preserveAspectRatio="none"><path class="track-base" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-green" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-orange" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/></svg>`;list.appendChild(track);}
+        if(work.chapters.length>4){const track=document.createElement("div");track.className="spa-track";track.innerHTML=`<svg viewBox="0 0 340 180" preserveAspectRatio="none"><path class="track-outline" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-outline" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-base" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-green" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-orange" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/></svg>`;list.appendChild(track);}
         button.addEventListener("click", () => { card.classList.toggle("open"); const gate = card.querySelector(".gate"); if (gate) gate.classList.remove("visible"); });
   } else { button.addEventListener("click", () => openGate(workIndex, 0, card)); }
 
@@ -329,6 +330,7 @@
     }
 
     function renderChapterNav() {
+      document.getElementById("jump-toggle").addEventListener("click",()=>{const menu=document.getElementById("jump-menu"),work=CONFIG.WORKS[current.workIndex];menu.innerHTML="";work.chapters.forEach((chapter,index)=>{const b=document.createElement("button");b.type="button";b.textContent=chapter.title;b.addEventListener("click",()=>{menu.classList.remove("open");showChapter(current.workIndex,index);});menu.appendChild(b);});menu.classList.toggle("open");});
       const {workIndex, chapterIndex} = current;
       const work = CONFIG.WORKS[workIndex];
       const top = document.getElementById("nav-top");
@@ -347,7 +349,6 @@
         next.disabled = chapterIndex === work.chapters.length-1;
         next.addEventListener("click", () => showChapter(workIndex, chapterIndex+1));
         nav.append(prev,next);
-      document.getElementById("jump-toggle").addEventListener("click",()=>{const menu=document.getElementById("jump-menu");const work=CONFIG.WORKS[current.workIndex];menu.innerHTML="";work.chapters.forEach((chapter,index)=>{const b=document.createElement("button");b.type="button";b.textContent=chapter.title;b.addEventListener("click",()=>{menu.classList.remove("open");showChapter(current.workIndex,index);});menu.appendChild(b);});menu.classList.toggle("open");});
       });
     }
 
@@ -376,8 +377,8 @@
 
     /* 以下为生日礼花相关，过了需要删除。 */
     function celebrate() { const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"]; for(let i=0;i<48;i++){const p=document.createElement("i");p.className="confetti-piece";p.style.left=Math.random()*100+"vw";p.style.background=colors[i%5];p.style.setProperty("--drift",(Math.random()*180-90)+"px");p.style.setProperty("--spin",(Math.random()*900-450)+"deg");p.style.animationDelay=Math.random()*.35+"s";document.body.appendChild(p);setTimeout(()=>p.remove(),2400);}}
-    window.addEventListener("load",()=>setTimeout(celebrate,200)); const birthdayLine=document.querySelector(".eyebrow"); birthdayLine.addEventListener("mouseenter",celebrate); birthdayLine.addEventListener("touchstart",celebrate,{passive:true});
-    function celebratePopper(){const line=document.querySelector(".eyebrow");if(!line)return;const rect=line.getBoundingClientRect(),colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"],shapes=[`M2 17 Q10 0 19 13 T38 12`,`M2 5 C12 28 24 -4 40 20`,`M2 18 C12 -3 23 34 40 9`,`M2 20 Q12 3 20 17 Q29 31 39 8`,`M2 8 C9 28 16 27 22 12 S34 0 40 17`];[rect.left+8,rect.right-8].forEach((x,side)=>{for(let i=0;i<17;i++){const el=document.createElement("span"),color=colors[Math.floor(Math.random()*colors.length)],shape=shapes[Math.floor(Math.random()*shapes.length)],angle=(side===0?1:-1)*(25+Math.random()*65),distance=65+Math.random()*115,rad=angle*Math.PI/180,spiral=Math.random()<.3;el.className="popper-ribbon";el.style.left=x+"px";el.style.top=(rect.top-12)+"px";el.style.setProperty("--dx",Math.cos(rad)*distance+"px");el.style.setProperty("--dy",-Math.sin(rad)*distance-20+"px");el.style.setProperty("--rotate",(Math.random()*90-45)+"deg");el.style.setProperty("--spin",(Math.random()*600-300)+"deg");el.style.animationDelay=Math.random()*.22+"s";el.innerHTML=`<svg viewBox="0 0 42 34"><path d="${spiral?"M21 17 C4 0 1 29 17 27 C32 25 29 5 18 8 C9 11 14 21 21 17":shape}" stroke="${color}"/></svg>`;document.body.appendChild(el);setTimeout(()=>el.remove(),2300);}});}
+    window.addEventListener("load",()=>{setTimeout(celebrate,200);setTimeout(celebratePopper,300);}); const birthdayLine=document.querySelector(".eyebrow"); birthdayLine.addEventListener("mouseenter",()=>{celebrate();celebratePopper();}); birthdayLine.addEventListener("touchstart",()=>{celebrate();celebratePopper();},{passive:true});
+    function celebratePopper(){const line=document.querySelector(".eyebrow");if(!line)return;const rect=line.getBoundingClientRect(),colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"],shapes=[`M2 17 Q10 0 19 13 T38 12`,`M2 5 C12 28 24 -4 40 20`,`M2 18 C12 -3 23 34 40 9`,`M2 20 Q12 3 20 17 Q29 31 39 8`,`M2 8 C9 28 16 27 22 12 S34 0 40 17`];[rect.left+8,rect.right-8].forEach((x,side)=>{for(let i=0;i<17;i++){const el=document.createElement("span"),color=colors[Math.floor(Math.random()*colors.length)],shape=shapes[Math.floor(Math.random()*shapes.length)],angle=(side===0?1:-1)*(25+Math.random()*65),distance=65+Math.random()*115,rad=angle*Math.PI/180,spiral=Math.random()<.3;el.className="popper-ribbon";el.style.left=x+"px";el.style.top=(rect.top-12)+"px";el.style.setProperty("--dx",(side===0?-1:1)*Math.cos(Math.abs(rad))*distance+"px");el.style.setProperty("--dy",-Math.sin(rad)*distance-20+"px");el.style.setProperty("--rotate",(Math.random()*90-45)+"deg");el.style.setProperty("--spin",(Math.random()*600-300)+"deg");el.style.animationDelay=Math.random()*.22+"s";el.innerHTML=`<svg viewBox="0 0 42 34"><path d="${spiral?"M21 17 C4 0 1 29 17 27 C32 25 29 5 18 8 C9 11 14 21 21 17":shape}" stroke="${color}"/></svg>`;document.body.appendChild(el);setTimeout(()=>el.remove(),2300);}});}
     /* 以上为生日礼花相关，过了需要删除。 */
 
     renderDirectory();
