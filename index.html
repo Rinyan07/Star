@@ -440,6 +440,30 @@
     }
   });
 }
+    function celebrateConfetti(){
+  const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"];
+  for(let i=0;i<60;i++){
+    const el=document.createElement("span");
+    el.className="confetti-piece";
+    el.style.left=Math.random()*100+"vw";
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.setProperty("--drift",(Math.random()*200-100)+"px");
+    el.style.setProperty("--spin",(Math.random()*720-360)+"deg");
+    el.style.animationDelay=Math.random()*.8+"s";
+    el.style.animationDuration=(1.8+Math.random()*1.2)+"s";
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4200);
+  }
+}
+function startBirthday(){
+  celebratePopper();
+  celebrateConfetti();
+}
+window.addEventListener("load",()=>{
+  const ready=document.fonts?document.fonts.ready:Promise.resolve();
+  ready.then(()=>setTimeout(startBirthday,300));
+});
+    document.querySelector(".eyebrow").addEventListener("click",startBirthday);
     /* 以上为生日礼花相关，过了需要删除。 */
 
     renderDirectory();
