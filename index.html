@@ -418,7 +418,7 @@
     {size:"medium",svg:'<path d="M1 4 Q4 1 7 5 L10 8 Q12 10 14 6 L13 10 Q10 13 7 9 L4 7 Z" fill="COLOR"/>'},
     {size:"large",svg:'<path d="M4 11 C2 7 5 3 9 4 C13 5 14 9 11 12 C9 14 6 13 6 10" fill="none" stroke="COLOR" stroke-width="2.5"/>'}
   ];
-  [rect.left+30,rect.right-35].forEach((x,side)=>{
+  [rect.left+50,rect.right-60].forEach((x,side)=>{
     for(let i=0;i<10;i++){
       const el=document.createElement("span");
       const shape=shapes[Math.floor(Math.random()*shapes.length)];
@@ -442,7 +442,7 @@
 }
     function celebrateConfetti(){
   const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"];
-  for(let i=0;i<60;i++){
+  for(let i=0;i<120;i++){
     const el=document.createElement("span");
     el.className="confetti-piece";
     el.style.left=Math.random()*100+"vw";
