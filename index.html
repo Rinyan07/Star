@@ -100,9 +100,23 @@
     .jump-menu button:hover { background:var(--linen); }
     .top-link { display:flex; justify-content:flex-end; margin:24px 0 12px; }
     .top-link button { border:0; padding:6px 0 6px 12px; background:transparent; color:var(--muted); font:12px var(--sans); letter-spacing:.08em; }
+    /*以下为赛道。*/
+    .chapter-list { position:relative; }
+    .chapter-button { position:relative; z-index:2; min-height:46px; }
+    .chapter-label,.chapter-number { position:relative; z-index:2; background:var(--paper); }
+    .spa-track { position:absolute; z-index:1; top:50%; left:12%; width:76%; height:230px; transform:translateY(-50%); pointer-events:none; }
+    .spa-track svg { width:100%; height:100%; overflow:visible; }
+    .spa-track path { fill:none; stroke-width:5; stroke-linecap:round; stroke-linejoin:round; }
+    .spa-track .track-base { stroke:var(--paper); stroke-width:10; }
+    .spa-track .track-green { stroke:#65A878; stroke-dasharray:50 50; }
+    .spa-track .track-orange { stroke:#F2994A; stroke-dasharray:50 50; stroke-dashoffset:-50; }
     /* 以下为生日礼花相关，过了需要删除。 */
     .confetti-piece { position:fixed; top:-15px; width:5px; height:11px; z-index:9999; pointer-events:none; animation:confetti-fall 2s ease-in forwards; border-radius:2px; }
     @keyframes confetti-fall { 0% { transform:translate(0,0) rotate(0); opacity:1; } 100% { transform:translate(var(--drift),105vh) rotate(var(--spin)); opacity:0; } }
+    .popper-ribbon { position:fixed; z-index:9999; pointer-events:none; width:42px; height:34px; overflow:visible; animation:popper-fly 1.9s cubic-bezier(.12,.65,.35,1) forwards; }
+    .popper-ribbon svg { width:100%; height:100%; overflow:visible; }
+    .popper-ribbon path { fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+    @keyframes popper-fly { 0% { transform:translate(0,0) rotate(var(--rotate)) scale(.35); opacity:0; } 12% { opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) rotate(var(--spin)) scale(1); opacity:0; } }
     /* 以上为生日礼花相关，过了需要删除。 */
   </style>
 </head>
@@ -205,10 +219,11 @@
         const list = document.createElement("div"); list.className = "chapter-list";
         work.chapters.forEach((chapter, index) => {
         const chapterButton = document.createElement("button"); chapterButton.type = "button"; chapterButton.className = "chapter-button";
-        chapterButton.innerHTML = `<span>${escapeHTML(chapter.title)}</span><span class="chapter-number">${String(index+1).padStart(2,"0")}</span>`;
+        chapterButton.innerHTML = `<span class="chapter-label">${escapeHTML(chapter.title)}</span><span class="chapter-number">${String(index+1).padStart(2,"0")}</span>`;
         chapterButton.addEventListener("click", () => openGate(workIndex, index, card)); list.appendChild(chapterButton);
   });
         card.appendChild(list);
+        if(work.chapters.length>4){const track=document.createElement("div");track.className="spa-track";track.innerHTML=`<svg viewBox="0 0 340 180" preserveAspectRatio="none"><path class="track-base" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-green" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/><path class="track-orange" d="M20 150 L42 105 L75 72 L100 68 L135 42 L230 8 L250 15 L265 10 L290 40 L310 60 L295 78 L260 68 L225 80 L220 105 L245 125 L270 130 L290 150 L270 172 L230 165 L205 125 L180 105 L150 115 L120 130 L90 140 L55 145 Z"/></svg>`;list.appendChild(track);}
         button.addEventListener("click", () => { card.classList.toggle("open"); const gate = card.querySelector(".gate"); if (gate) gate.classList.remove("visible"); });
   } else { button.addEventListener("click", () => openGate(workIndex, 0, card)); }
 
@@ -362,6 +377,7 @@
     /* 以下为生日礼花相关，过了需要删除。 */
     function celebrate() { const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"]; for(let i=0;i<48;i++){const p=document.createElement("i");p.className="confetti-piece";p.style.left=Math.random()*100+"vw";p.style.background=colors[i%5];p.style.setProperty("--drift",(Math.random()*180-90)+"px");p.style.setProperty("--spin",(Math.random()*900-450)+"deg");p.style.animationDelay=Math.random()*.35+"s";document.body.appendChild(p);setTimeout(()=>p.remove(),2400);}}
     window.addEventListener("load",()=>setTimeout(celebrate,200)); const birthdayLine=document.querySelector(".eyebrow"); birthdayLine.addEventListener("mouseenter",celebrate); birthdayLine.addEventListener("touchstart",celebrate,{passive:true});
+    function celebratePopper(){const line=document.querySelector(".eyebrow");if(!line)return;const rect=line.getBoundingClientRect(),colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"],shapes=[`M2 17 Q10 0 19 13 T38 12`,`M2 5 C12 28 24 -4 40 20`,`M2 18 C12 -3 23 34 40 9`,`M2 20 Q12 3 20 17 Q29 31 39 8`,`M2 8 C9 28 16 27 22 12 S34 0 40 17`];[rect.left+8,rect.right-8].forEach((x,side)=>{for(let i=0;i<17;i++){const el=document.createElement("span"),color=colors[Math.floor(Math.random()*colors.length)],shape=shapes[Math.floor(Math.random()*shapes.length)],angle=(side===0?1:-1)*(25+Math.random()*65),distance=65+Math.random()*115,rad=angle*Math.PI/180,spiral=Math.random()<.3;el.className="popper-ribbon";el.style.left=x+"px";el.style.top=(rect.top-12)+"px";el.style.setProperty("--dx",Math.cos(rad)*distance+"px");el.style.setProperty("--dy",-Math.sin(rad)*distance-20+"px");el.style.setProperty("--rotate",(Math.random()*90-45)+"deg");el.style.setProperty("--spin",(Math.random()*600-300)+"deg");el.style.animationDelay=Math.random()*.22+"s";el.innerHTML=`<svg viewBox="0 0 42 34"><path d="${spiral?"M21 17 C4 0 1 29 17 27 C32 25 29 5 18 8 C9 11 14 21 21 17":shape}" stroke="${color}"/></svg>`;document.body.appendChild(el);setTimeout(()=>el.remove(),2300);}});}
     /* 以上为生日礼花相关，过了需要删除。 */
 
     renderDirectory();
