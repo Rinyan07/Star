@@ -32,9 +32,9 @@
     h1 { margin:12px 0 10px; font:500 clamp(28px,5vw,42px) var(--sans); letter-spacing:.06em; }
     .intro p { color:var(--muted); font-size:14px; line-height:1.9; margin:0; }
     .section-heading { display:flex; align-items:center; gap:14px; margin:18px 0 12px; font:500 12px var(--sans); letter-spacing:.16em; }
-    .section-heading:after { content:""; height:1px; background:var(--line); flex:1; }
+    .section-heading:after { content:""; height:1px; background:var(--ln4); flex:1; }
     #works { padding-bottom:90px; }
-    .work { border-bottom:1px solid var(--line); }
+    .work { border-bottom:1px solid var(--papaya); }
     .work { position:relative; }
     .work:not(:last-child)::after { content:"LN4 X OP81"; position:absolute; right:0; bottom:-8px; padding:0 8px; background:var(--paper); color:#9A755F; font:11px var(--sans); letter-spacing:.04em; }
     .work-button { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; width:100%; padding:23px 4px; border:0; background:transparent; color:inherit; text-align:left; }
@@ -92,6 +92,18 @@
     /* 轻度防复制：只能提高门槛，不能阻止截图、开发者工具或网络请求查看。 */
     body, .article-body { -webkit-touch-callout:none; }
     h1,.work-title,.gate-title, .reader h2 { font-weight:600; }
+    .reader-actions { display:flex; gap:8px; }
+    .jump-menu { display:none; margin:12px 0 0 auto; width:max-content; max-width:100%; border:1px solid var(--line); background:var(--reader-bg); }
+    .jump-menu.open { display:flex; flex-direction:column; }
+    .jump-menu button { padding:9px 16px; border:0; border-bottom:1px solid var(--line); background:transparent; color:var(--reader-ink); text-align:left; font:13px var(--sans); }
+    .jump-menu button:last-child { border-bottom:0; }
+    .jump-menu button:hover { background:var(--linen); }
+    .top-link { display:flex; justify-content:flex-end; margin:24px 0 12px; }
+    .top-link button { border:0; padding:6px 0 6px 12px; background:transparent; color:var(--muted); font:12px var(--sans); letter-spacing:.08em; }
+    /* 以下为生日礼花相关，过了需要删除。 */
+    .confetti-piece { position:fixed; top:-15px; width:5px; height:11px; z-index:9999; pointer-events:none; animation:confetti-fall 2s ease-in forwards; border-radius:2px; }
+    @keyframes confetti-fall { 0% { transform:translate(0,0) rotate(0); opacity:1; } 100% { transform:translate(var(--drift),105vh) rotate(var(--spin)); opacity:0; } }
+    /* 以上为生日礼花相关，过了需要删除。 */
   </style>
 </head>
 <body>
@@ -107,19 +119,22 @@
     </section>
     <div class="section-heading">所有文章</div>
     <section id="works" aria-label="文章目录"></section>
+    <div class="top-link"><button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑TOP</button></div>
     <footer class="footer">© <span id="year"></span> <span id="footer-author">AUTHOR ID</span></footer>
   </main>
 
   <section id="reader" class="reader" aria-label="文章阅读区">
     <div class="reader-inner">
       <div class="reader-toolbar">
-        <button class="back-button" id="return-home" type="button">← 返回主目录</button>
-        <button class="mode-button" id="night-toggle" type="button">切换深夜模式</button>
-      </div>
+  <button class="back-button" id="return-home" type="button">← 返回目录</button>
+  <div class="reader-actions"><button class="mode-button" id="night-toggle" type="button">切换深夜模式</button><button class="mode-button" id="jump-toggle" type="button">跳转章节</button></div>
+</div>
+<div class="jump-menu" id="jump-menu"></div>
       <h2 id="reader-title"></h2>
       <nav class="chapter-nav top" id="nav-top"></nav>
       <article class="article-body" id="article-body"></article>
       <nav class="chapter-nav bottom" id="nav-bottom"></nav>
+      <div class="top-link"><button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑TOP</button></div>
     </div>
   </section>
 
@@ -134,7 +149,7 @@
     */
     const CONFIG = {
       AUTHOR_ID: "Starmio🦋",
-      API_URL: "https://twilight-water-3802reader.rin07.workers.dev/",
+      API_URL: "https://twilight-water-3802reader.rin07.workers.dev",
       WORKS: [
         {
           id: "story-one",
@@ -294,6 +309,7 @@
         work.chapters.length > 1 ? `${work.title}｜${chapter.title}` : work.title;
       document.getElementById("article-body").textContent = bodyText;
       renderChapterNav();
+      document.getElementById("jump-toggle").style.display=work.chapters.length>1?"":"none"; document.getElementById("jump-menu").classList.remove("open");
       window.scrollTo(0,0);
     }
 
@@ -316,6 +332,7 @@
         next.disabled = chapterIndex === work.chapters.length-1;
         next.addEventListener("click", () => showChapter(workIndex, chapterIndex+1));
         nav.append(prev,next);
+      document.getElementById("jump-toggle").addEventListener("click",()=>{const menu=document.getElementById("jump-menu");const work=CONFIG.WORKS[current.workIndex];menu.innerHTML="";work.chapters.forEach((chapter,index)=>{const b=document.createElement("button");b.type="button";b.textContent=chapter.title;b.addEventListener("click",()=>{menu.classList.remove("open");showChapter(current.workIndex,index);});menu.appendChild(b);});menu.classList.toggle("open");});
       });
     }
 
@@ -341,6 +358,11 @@
       const key = e.key.toLowerCase();
       if ((e.ctrlKey || e.metaKey) && ["c","x","a","s","p","u"].includes(key)) e.preventDefault();
     });
+
+    /* 以下为生日礼花相关，过了需要删除。 */
+    function celebrate() { const colors=["#E76F6A","#65A878","#F2C94C","#F2994A","#79BDE8"]; for(let i=0;i<48;i++){const p=document.createElement("i");p.className="confetti-piece";p.style.left=Math.random()*100+"vw";p.style.background=colors[i%5];p.style.setProperty("--drift",(Math.random()*180-90)+"px");p.style.setProperty("--spin",(Math.random()*900-450)+"deg");p.style.animationDelay=Math.random()*.35+"s";document.body.appendChild(p);setTimeout(()=>p.remove(),2400);}}
+    window.addEventListener("load",()=>setTimeout(celebrate,200)); const birthdayLine=document.querySelector(".eyebrow"); birthdayLine.addEventListener("mouseenter",celebrate); birthdayLine.addEventListener("touchstart",celebrate,{passive:true});
+    /* 以上为生日礼花相关，过了需要删除。 */
 
     renderDirectory();
   </script>
