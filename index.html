@@ -473,7 +473,7 @@ window.addEventListener("load",()=>{
     /* 以下为彩蛋：连点 eyebrow 四次放蜡笔烟花（电脑、手机都是点击四次）。不需要时整段删除。 */
     (function(){
       const TAU=Math.PI*2;
-      const C={orange:"#FF8A1A",green:"#8FE36A",red:"#FF6B6B",yellow:"#FFE252",gold:"#FFC21F",pink:"FBC1E2",lilac:"#B79BF2",sky:"#8CC8FF",oranged:#FEAF0A};
+      const C={orange:"#FF8A1A",green:"#8FE36A",red:"#FF6B6B",yellow:"#FFE252",gold:"#FFC21F",pink:"FBC1E2",lilac:"#B79BF2",sky:"#8CC8FF",oranged:#FEAF0A,greend:"#D6FE07"};
       const rand=(a,b)=>a+Math.random()*(b-a);
       const pick=a=>a[Math.floor(Math.random()*a.length)];
       const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -643,7 +643,7 @@ window.addEventListener("load",()=>{
       /* ---------- 一枚烟花 ---------- */
       function makeFw(pl,H){
         const R=pl.R, w=Math.max(5,R*.025), unit=clamp(R/160,.8,1.5);
-        const mainC=pl.kind==="orange"?C.orange:C.LN4, otherC=pl.kind==="orange"?C.LN4:C.orange;
+        const mainC=pl.kind==="orange"?C.orange:C.greend, otherC=pl.kind==="orange"?C.greend:C.orange;
         const half=Math.ceil(R*1.3);
         const layer=sprite(half*2,half*2);
         const N=28+Math.floor(Math.random()*3), aux=4+Math.floor(Math.random()*2);
@@ -763,9 +763,9 @@ window.addEventListener("load",()=>{
         const Rs=Math.min(W*.46,H*.34), Rp=Math.min(W*.25,H*.2), hd=Math.min(W*.23,Rp*1.15);
         const plan=[                                               // 橙 → 绿 → 橙+绿同时（相隔 4 秒，前一个最后 1 秒消失前发射）
           {at:0,   cx:W/2,    cy:H*.46,R:Rs,kind:"orange"},
-          {at:4000,cx:W/2,    cy:H*.46,R:Rs,kind:"LN4"},
+          {at:4000,cx:W/2,    cy:H*.46,R:Rs,kind:"greend"},
           {at:8000,cx:W/2-hd, cy:H*.4, R:Rp,kind:"orange"},
-          {at:8000,cx:W/2+hd, cy:H*.56,R:Rp,kind:"LN4"}
+          {at:8000,cx:W/2+hd, cy:H*.56,R:Rp,kind:"greend"}
         ];
         const t0=performance.now();
         function frame(now){
