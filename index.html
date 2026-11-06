@@ -111,7 +111,8 @@
     .spa-track .track-base { stroke:var(--paper); stroke-width:10; }
     .spa-track .track-green { stroke:#D6FE07; stroke-dasharray:50 50; }
     .spa-track .track-orange { stroke:#FF7F00; stroke-dasharray:50 50; stroke-dashoffset:-50; }
-    .spa-track .track-outline { stroke:#000; stroke-width:9; }
+    .spa-track .track-outline { stroke:#000; stroke-width:11; }
+    
     /* 以下为生日礼花相关，过了需要删除。 */
     .confetti-piece { position:fixed; top:-15px; width:5px; height:11px; z-index:9999; pointer-events:none; animation:confetti-fall 2s ease-in forwards; border-radius:2px; }
     @keyframes confetti-fall { 0% { transform:translate(0,0) rotate(0); opacity:1; } 100% { transform:translate(var(--drift),105vh) rotate(var(--spin)); opacity:0; } }
@@ -472,7 +473,7 @@ window.addEventListener("load",()=>{
     /* 以下为彩蛋：连点 eyebrow 四次放蜡笔烟花（电脑、手机都是点击四次）。不需要时整段删除。 */
     (function(){
       const TAU=Math.PI*2;
-      const C={orange:"#FF8A1A",green:"#8FE36A",red:"#FF6B6B",yellow:"#FFE252",gold:"#FFC21F",pink:"#FF8CC6",lilac:"#B79BF2",sky:"#8CC8FF"};
+      const C={orange:"#FF8A1A",green:"#8FE36A",red:"#FF6B6B",yellow:"#FFE252",gold:"#FFC21F",pink:"FBC1E2",lilac:"#B79BF2",sky:"#8CC8FF",oranged:#FEAF0A};
       const rand=(a,b)=>a+Math.random()*(b-a);
       const pick=a=>a[Math.floor(Math.random()*a.length)];
       const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -607,16 +608,16 @@ window.addEventListener("load",()=>{
             const a=-Math.PI/2+i*Math.PI/5+rand(-.04,.04), rr=i%2?r*rand(.46,.52):r*rand(.94,1.04);
             pts.push([Math.cos(a)*rr,Math.sin(a)*rr]);
           }
-          x.fillStyle=C.gold; x.strokeStyle=C.gold; x.lineJoin="round"; x.lineWidth=r*.3;
+          x.fillStyle=C.oranged; x.strokeStyle=C.oranged; x.lineJoin="round"; x.lineWidth=r*.3;
           x.beginPath(); pts.forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])); x.closePath(); x.fill(); x.stroke();
           const o=[]; for(let i=0;i<10;i++)seg(pts[i],pts[(i+1)%10],o);
-          paint(x,stroke(o,()=>r*.15,C.gold),0,o.length-1);
+          paint(x,stroke(o,()=>r*.15,C.oranged),0,o.length-1);
           x.globalCompositeOperation="destination-out"; x.fillStyle="#000";
           for(let k=0;k<Math.round(r*5);k++){
             const a=rand(0,TAU), d=r*Math.sqrt(Math.random())*.95;
             x.globalAlpha=rand(.12,.4); x.fillRect(Math.cos(a)*d,Math.sin(a)*d,rand(.8,2),rand(.8,2));
           }
-          x.globalCompositeOperation="source-over"; x.fillStyle=mix(C.gold,.55);
+          x.globalCompositeOperation="source-over"; x.fillStyle=mix(C.oranged,.55);
           for(let k=0;k<Math.round(r*3);k++){
             const a=rand(0,TAU), d=r*Math.sqrt(Math.random())*.7;
             x.globalAlpha=rand(.3,.55); x.fillRect(Math.cos(a)*d,Math.sin(a)*d,rand(1,2.2),rand(1,2.2));
@@ -641,11 +642,11 @@ window.addEventListener("load",()=>{
 
       /* ---------- 一枚烟花 ---------- */
       function makeFw(pl,H){
-        const R=pl.R, w=Math.max(5,R*.048), unit=clamp(R/160,.8,1.5);
-        const mainC=pl.kind==="orange"?C.orange:C.green, otherC=pl.kind==="orange"?C.green:C.orange;
+        const R=pl.R, w=Math.max(5,R*.025), unit=clamp(R/160,.8,1.5);
+        const mainC=pl.kind==="orange"?C.orange:C.LN4, otherC=pl.kind==="orange"?C.LN4:C.orange;
         const half=Math.ceil(R*1.3);
         const layer=sprite(half*2,half*2);
-        const N=22+Math.floor(Math.random()*3), aux=4+Math.floor(Math.random()*2);
+        const N=28+Math.floor(Math.random()*3), aux=4+Math.floor(Math.random()*2);
         const cols=[];
         for(let i=0;i<aux;i++)cols.push(i<2?C.red:C.yellow);
         const rest=N-aux, nm=Math.round(rest*.72);
@@ -762,9 +763,9 @@ window.addEventListener("load",()=>{
         const Rs=Math.min(W*.46,H*.34), Rp=Math.min(W*.25,H*.2), hd=Math.min(W*.23,Rp*1.15);
         const plan=[                                               // 橙 → 绿 → 橙+绿同时（相隔 4 秒，前一个最后 1 秒消失前发射）
           {at:0,   cx:W/2,    cy:H*.46,R:Rs,kind:"orange"},
-          {at:4000,cx:W/2,    cy:H*.46,R:Rs,kind:"green"},
+          {at:4000,cx:W/2,    cy:H*.46,R:Rs,kind:"LN4"},
           {at:8000,cx:W/2-hd, cy:H*.4, R:Rp,kind:"orange"},
-          {at:8000,cx:W/2+hd, cy:H*.56,R:Rp,kind:"green"}
+          {at:8000,cx:W/2+hd, cy:H*.56,R:Rp,kind:"LN4"}
         ];
         const t0=performance.now();
         function frame(now){
