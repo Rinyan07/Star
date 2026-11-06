@@ -124,6 +124,9 @@
     .popper-ribbon path { stroke-linecap:round; stroke-linejoin:round; }
     @keyframes popper-fly { 0% { transform:translate(0,0) rotate(var(--rotate)) scale(.35); opacity:0; } 12% { opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) rotate(var(--spin)) scale(1); opacity:0; } }
     /* 以上为生日礼花相关，过了需要删除。 */
+    /* 彩蛋：eyebrow 烟花。只给 eyebrow 增加防选中，避免连点时选中文字或双击缩放。不需要时整段删除。 */
+    .eyebrow { user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+    /*以上为彩蛋。*/
   </style>
 </head>
 <body>
@@ -465,6 +468,232 @@ window.addEventListener("load",()=>{
 });
     document.querySelector(".eyebrow").addEventListener("click",startBirthday);
     /* 以上为生日礼花相关，过了需要删除。 */
+
+    /* 以下为彩蛋：eyebrow 烟花（手机连点四次 / 电脑划过四次）。不需要时整段删除。 */
+    (function(){
+      const NS="http://www.w3.org/2000/svg";
+      const TAU=Math.PI*2;
+      const C={orange:"#FF8A1A",green:"#86DC5C",red:"#F2605C",yellow:"#FFD93D",gold:"#FFC21A",pink:"#FF9DCB",lilac:"#B79BF2",sky:"#8CC8FF",mint:"#A8EE8A"};
+      const rand=(a,b)=>a+Math.random()*(b-a);
+      const pick=a=>a[Math.floor(Math.random()*a.length)];
+      const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+      const r1=n=>Math.round(n*10)/10;
+
+      function mix(hex,amt){
+        const n=parseInt(hex.slice(1),16), f=v=>Math.round(v+(255-v)*amt);
+        return "rgb("+f(n>>16)+","+f((n>>8)&255)+","+f(n&255)+")";
+      }
+      function node(tag,attrs,parent){
+        const e=document.createElementNS(NS,tag);
+        for(const k in attrs)e.setAttribute(k,attrs[k]);
+        if(parent)parent.appendChild(e);
+        return e;
+      }
+      // 经过一串点的平滑曲线
+      function smooth(pts){
+        let d="M"+r1(pts[0][0])+" "+r1(pts[0][1]);
+        for(let i=1;i<pts.length-1;i++){
+          const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2;
+          d+=" Q"+r1(pts[i][0])+" "+r1(pts[i][1])+" "+r1(mx)+" "+r1(my);
+        }
+        const l=pts[pts.length-1];
+        return d+" L"+r1(l[0])+" "+r1(l[1]);
+      }
+      // 蜡笔质感：外层柔边 + 主笔触 + 一条错位的浅色细线
+      function crayon(parent,d,color,w,grow){
+        const specs=[
+          {c:color,w:w*1.7,o:.2,dx:0,dy:0},
+          {c:color,w:w,o:.92,dx:0,dy:0},
+          {c:mix(color,.45),w:w*.45,o:.75,dx:rand(-1,1)*w*.18,dy:rand(-1,1)*w*.18}
+        ];
+        return specs.map(s=>{
+          const p=node("path",{d,fill:"none",stroke:s.c,"stroke-width":r1(s.w),"stroke-opacity":s.o,"stroke-linecap":"round","stroke-linejoin":"round",transform:"translate("+r1(s.dx)+" "+r1(s.dy)+")"},parent);
+          if(grow){p.setAttribute("pathLength","1");p.setAttribute("stroke-dasharray","1 1");}
+          return p;
+        });
+      }
+      function reveal(paths,delay,dur){
+        paths.forEach(p=>p.animate(
+          [{strokeDashoffset:1,opacity:0},{opacity:1,offset:.04},{strokeDashoffset:0,opacity:1}],
+          {delay,duration:dur,easing:"cubic-bezier(.15,.7,.3,1)",fill:"both"}
+        ));
+      }
+      function pop(e,delay,dur,rot){
+        e.style.transformBox="fill-box"; e.style.transformOrigin="center";
+        e.animate([
+          {transform:"scale(0) rotate("+rot+"deg)",opacity:0},
+          {transform:"scale(1.25) rotate("+(-rot/3)+"deg)",opacity:1,offset:.6},
+          {transform:"scale(1) rotate(0deg)",opacity:1}
+        ],{delay,duration:dur,easing:"ease-out",fill:"both"});
+      }
+
+      // 形状
+      function starD(r){
+        let d="";
+        for(let i=0;i<10;i++){
+          const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*.45:r;
+          d+=(i?"L":"M")+r1(Math.cos(a)*rr)+" "+r1(Math.sin(a)*rr);
+        }
+        return d+"Z";
+      }
+      function sparkD(s){
+        const q=s*.2;
+        return "M0 "+r1(-s)+" Q"+r1(q)+" "+r1(-q)+" "+r1(s)+" 0 Q"+r1(q)+" "+r1(q)+" 0 "+r1(s)+" Q"+r1(-q)+" "+r1(q)+" "+r1(-s)+" 0 Q"+r1(-q)+" "+r1(-q)+" 0 "+r1(-s)+"Z";
+      }
+      function heartD(s){
+        const p=(x,y)=>r1(x*s)+" "+r1(y*s);
+        return "M"+p(0,.85)+" C"+p(-1.05,.2)+" "+p(-1.05,-.75)+" "+p(-.5,-.75)+" C"+p(-.22,-.75)+" "+p(-.05,-.55)+" "+p(0,-.35)+" C"+p(.05,-.55)+" "+p(.22,-.75)+" "+p(.5,-.75)+" C"+p(1.05,-.75)+" "+p(1.05,.2)+" "+p(0,.85)+"Z";
+      }
+
+      // 升空：1 秒
+      function rocket(root,color,w,R,dy){
+        const g=node("g",{},root), L=R*.5;
+        crayon(g,smooth([[0,0],[w*.5,L*.15],[-w*.5,L*.3],[w*.4,L*.45],[0,L*.55]]),color,w*.8,false);
+        crayon(g,smooth([[0,L*.55],[-w*.4,L*.7],[w*.4,L*.85],[0,L]]),mix(color,.45),w*.45,false);
+        for(let i=0;i<6;i++){
+          node("circle",{cx:r1(rand(-w,w)),cy:r1(L*(1.05+i*.12)),r:r1(Math.max(1.2,w*.35-i*.3)),fill:i%2?C.yellow:color,"fill-opacity":.85},g);
+        }
+        node("path",{d:sparkD(w*1.6),fill:C.gold,stroke:C.gold,"stroke-width":r1(w*.3),"stroke-linejoin":"round"},g);
+        const wob=w*rand(.8,1.6)*(Math.random()<.5?-1:1);
+        g.animate([
+          {transform:"translate(0px,"+r1(dy)+"px)",opacity:1,offset:0},
+          {transform:"translate("+r1(wob)+"px,"+r1(dy*.55)+"px)",opacity:1,offset:.35},
+          {transform:"translate("+r1(-wob*.6)+"px,"+r1(dy*.18)+"px)",opacity:1,offset:.7},
+          {transform:"translate(0px,0px)",opacity:1,offset:.93},
+          {transform:"translate(0px,0px)",opacity:0,offset:1}
+        ],{duration:1000,easing:"linear",fill:"both"});
+      }
+
+      // 爆开的线条：至少 22 条，其中红/黄共 4–5 条，其余为橙/绿
+      function lines(bg,R,w,mainC,otherC){
+        const N=22+Math.floor(Math.random()*3), aux=4+Math.floor(Math.random()*2);
+        const cols=[];
+        for(let i=0;i<aux;i++)cols.push(i<2?C.red:C.yellow);
+        const rest=N-aux, nm=Math.round(rest*.72);
+        for(let i=0;i<rest;i++)cols.push(i<nm?mainC:otherC);
+        shuffle(cols);
+        const base=rand(0,TAU), step=TAU/N, angs=[];
+        for(let i=0;i<N;i++){
+          const a=base+i*step+rand(-.18,.18)*step; angs.push(a);
+          const ra=R*rand(.15,.24), rb=R*(i%2?rand(.6,.8):rand(.88,1.02));
+          const k=pick([1,2,2,3]), A=R*rand(.03,.1)*(Math.random()<.5?-1:1), ph=rand(0,Math.PI);
+          const hook=Math.random()<.25, hs=Math.random()<.5?-1:1;
+          const pts=[], n=7;
+          for(let j=0;j<n;j++){
+            const t=j/(n-1), r=ra+(rb-ra)*t;
+            let off=A*Math.sin(t*Math.PI*k+ph)*(.4+t);
+            if(hook&&j>=n-2)off+=hs*R*.07*(j-n+3);
+            off+=rand(-.5,.5)*w*.25;
+            pts.push([Math.cos(a)*r-Math.sin(a)*off, Math.sin(a)*r+Math.cos(a)*off]);
+          }
+          reveal(crayon(bg,smooth(pts),cols[i],w,true),1000+rand(0,160),rand(900,1300));
+        }
+        return angs;
+      }
+
+      // 空隙装饰：粉红爱心、小星星、星星点点
+      function decor(bg,angs,R,w){
+        const N=angs.length;
+        const gaps=shuffle(angs.map((a,i)=>(a+(i<N-1?angs[i+1]:angs[0]+TAU))/2));
+        const unit=Math.max(.8,Math.min(1.5,R/160));
+        for(let i=0;i<3;i++){
+          const a=gaps[i], rr=R*rand(.62,.92), s=R*rand(.07,.09);
+          const o=node("g",{transform:"translate("+r1(Math.cos(a)*rr)+" "+r1(Math.sin(a)*rr)+") rotate("+r1(rand(-20,20))+")"},bg);
+          const g=node("g",{},o), d=heartD(s);
+          node("path",{d,fill:C.pink,"fill-opacity":.28},g);
+          crayon(g,d,C.pink,w*.7,false);
+          pop(g,1000+rand(300,900),700,rand(-25,25));
+        }
+        for(let i=0;i<6;i++){
+          const a=gaps[3+i], rr=R*rand(.4,1.02), s=R*rand(.04,.065), c=pick([C.yellow,C.lilac,C.sky,C.mint]);
+          const o=node("g",{transform:"translate("+r1(Math.cos(a)*rr)+" "+r1(Math.sin(a)*rr)+") rotate("+r1(rand(-15,15))+")"},bg);
+          const g=node("g",{},o), d=sparkD(s);
+          node("path",{d,fill:c,"fill-opacity":.4},g);
+          crayon(g,d,c,w*.5,false);
+          pop(g,1000+rand(300,1000),700,rand(-60,60));
+        }
+        for(let i=0;i<8;i++){
+          const a=rand(0,TAU), r0=R*rand(.55,1.05), len=R*rand(.05,.09);
+          const d="M"+r1(Math.cos(a)*r0)+" "+r1(Math.sin(a)*r0)+" L"+r1(Math.cos(a)*(r0+len))+" "+r1(Math.sin(a)*(r0+len));
+          reveal(crayon(bg,d,pick([C.orange,C.green,C.yellow,C.sky]),w*.6,true),1000+rand(200,600),500);
+        }
+        for(let i=0;i<18;i++){
+          const a=rand(0,TAU), rr=R*rand(.3,1.15), x=Math.cos(a)*rr, y=Math.sin(a)*rr, s=rand(1.6,3.6)*unit;
+          const d=node("ellipse",{cx:r1(x),cy:r1(y),rx:r1(s),ry:r1(s*rand(.7,1)),fill:pick([C.yellow,C.orange,C.green,C.sky,C.lilac,C.pink]),"fill-opacity":.95},bg);
+          d.style.transformBox="fill-box"; d.style.transformOrigin="center";
+          const delay=1000+rand(0,250);
+          d.animate([
+            {transform:"translate("+r1(-x*.8)+"px,"+r1(-y*.8)+"px) scale(.3)",opacity:0},
+            {opacity:1,offset:.3},
+            {transform:"translate(0px,0px) scale(1)",opacity:1}
+          ],{delay,duration:rand(800,1200),easing:"cubic-bezier(.15,.7,.3,1)",fill:"both"});
+          d.animate([{opacity:1},{opacity:.25},{opacity:1}],{delay:1900,duration:rand(350,600),iterations:3});
+        }
+      }
+
+      // 中心金黄蜡笔星星
+      function centerStar(bg,R,w){
+        const g=node("g",{},bg), r=R*.17, d=starD(r);
+        node("path",{d,fill:"none",stroke:C.gold,"stroke-width":r1(w*1.6),"stroke-opacity":.2,"stroke-linejoin":"round"},g);
+        node("path",{d,fill:C.gold,"fill-opacity":.95,stroke:C.gold,"stroke-width":r1(w*.7),"stroke-linejoin":"round"},g);
+        node("path",{d:starD(r*.7),fill:"none",stroke:mix(C.gold,.55),"stroke-width":r1(w*.3),"stroke-opacity":.7,"stroke-linejoin":"round",transform:"translate("+r1(-w*.15)+" "+r1(-w*.15)+")"},g);
+        pop(g,1000,800,-40);
+      }
+
+      // 一枚烟花：升空 1 秒 → 炸开 2 秒 → 消失 2 秒
+      function fire(svg,cx,cy,R,kind,H){
+        const w=Math.max(5.5,R*.05);
+        const mainC=kind==="orange"?C.orange:C.green, otherC=kind==="orange"?C.green:C.orange;
+        const root=node("g",{transform:"translate("+r1(cx)+" "+r1(cy)+")"},svg);
+        rocket(root,mainC,w,R,H-cy+R*.9+30);
+        const bg=node("g",{},root);
+        bg.style.opacity="0";
+        bg.animate([
+          {opacity:1,transform:"translate(0px,0px) scale(.94)",offset:0},
+          {opacity:1,transform:"translate(0px,0px) scale(1)",offset:.5,easing:"ease-out"},
+          {opacity:0,transform:"translate(0px,26px) scale(1.03)",offset:1}
+        ],{delay:1000,duration:4000,easing:"linear",fill:"forwards"});
+        const angs=lines(bg,R,w,mainC,otherC);
+        decor(bg,angs,R,w);
+        centerStar(bg,R,w);
+      }
+
+      let running=false;
+      function trigger(){
+        running=true;
+        const ov=document.createElement("div");
+        ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;pointer-events:none;overflow:hidden";
+        document.body.appendChild(ov);
+        const W=ov.clientWidth, H=ov.clientHeight;
+        const svg=node("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",height:"100%"},ov);
+        svg.style.display="block";
+        const Rs=Math.min(W*.46,H*.34);               // 单发：屏幕中心
+        const Rp=Math.min(W*.25,H*.2);                // 双发：左右并排
+        const hd=Math.min(W*.23,Rp*1.15);
+        fire(svg,W/2,H*.46,Rs,"orange",H);                              // 第 1 个：橙
+        setTimeout(()=>fire(svg,W/2,H*.46,Rs,"green",H),4000);          // 第 2 个：绿（前一个最后 1 秒消失前发射）
+        setTimeout(()=>{                                                // 第 3、4 个：橙+绿同时
+          fire(svg,W/2-hd,H*.4,Rp,"orange",H);
+          fire(svg,W/2+hd,H*.56,Rp,"green",H);
+        },8000);
+        setTimeout(()=>{ov.remove();running=false;},13500);
+      }
+
+      // 触发：电脑（鼠标）划过 4 次；手机（触屏）点击 4 次
+      const eb=document.querySelector(".eyebrow");
+      if(!eb)return;
+      let count=0,timer=0;
+      function bump(){
+        if(running)return;
+        count++;
+        clearTimeout(timer);
+        timer=setTimeout(()=>{count=0;},3000);
+        if(count>=4){count=0;trigger();}
+      }
+      eb.addEventListener("pointerenter",e=>{ if(e.pointerType==="mouse")bump(); });
+      eb.addEventListener("click",e=>{ if(e.pointerType!=="mouse")bump(); });
+    })();
+    /* 以上为彩蛋。 */
 
     renderDirectory();
   </script>
