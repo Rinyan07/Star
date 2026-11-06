@@ -469,229 +469,329 @@ window.addEventListener("load",()=>{
     document.querySelector(".eyebrow").addEventListener("click",startBirthday);
     /* 以上为生日礼花相关，过了需要删除。 */
 
-    /* 以下为彩蛋：eyebrow 烟花（手机连点四次 / 电脑划过四次）。不需要时整段删除。 */
+    /* 以下为彩蛋：连点 eyebrow 四次放蜡笔烟花（电脑、手机都是点击四次）。不需要时整段删除。 */
     (function(){
-      const NS="http://www.w3.org/2000/svg";
       const TAU=Math.PI*2;
-      const C={orange:"#FF8A1A",green:"#86DC5C",red:"#F2605C",yellow:"#FFD93D",gold:"#FFC21A",pink:"#FF9DCB",lilac:"#B79BF2",sky:"#8CC8FF",mint:"#A8EE8A"};
+      const C={orange:"#FF8A1A",green:"#8FE36A",red:"#FF6B6B",yellow:"#FFE252",gold:"#FFC21F",pink:"#FF8CC6",lilac:"#B79BF2",sky:"#8CC8FF"};
       const rand=(a,b)=>a+Math.random()*(b-a);
       const pick=a=>a[Math.floor(Math.random()*a.length)];
       const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
-      const r1=n=>Math.round(n*10)/10;
+      const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+      const easeOut=p=>1-Math.pow(1-p,3);
+      let DPR=1;
 
       function mix(hex,amt){
         const n=parseInt(hex.slice(1),16), f=v=>Math.round(v+(255-v)*amt);
         return "rgb("+f(n>>16)+","+f((n>>8)&255)+","+f(n&255)+")";
       }
-      function node(tag,attrs,parent){
-        const e=document.createElementNS(NS,tag);
-        for(const k in attrs)e.setAttribute(k,attrs[k]);
-        if(parent)parent.appendChild(e);
-        return e;
+
+      /* ---------- 小画布（精灵）：画好一次，反复贴图 ---------- */
+      function sprite(w,h,fn){
+        const c=document.createElement("canvas");
+        c.width=Math.ceil(w*DPR); c.height=Math.ceil(h*DPR);
+        const x=c.getContext("2d");
+        x.scale(DPR,DPR); x.translate(w/2,h/2);
+        if(fn)fn(x);
+        return {c,x,w,h};
       }
-      // 经过一串点的平滑曲线
-      function smooth(pts){
-        let d="M"+r1(pts[0][0])+" "+r1(pts[0][1]);
-        for(let i=1;i<pts.length-1;i++){
-          const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2;
-          d+=" Q"+r1(pts[i][0])+" "+r1(pts[i][1])+" "+r1(mx)+" "+r1(my);
+      function put(ctx,sp,x,y,rot,s){
+        ctx.save(); ctx.translate(x,y);
+        if(rot)ctx.rotate(rot);
+        if(s!==1)ctx.scale(s,s);
+        ctx.drawImage(sp.c,-sp.w/2,-sp.h/2,sp.w,sp.h);
+        ctx.restore();
+      }
+
+      /* ---------- 蜡笔笔触：渐变粗细的实心笔道 + 毛边 + 纸纹颗粒 ---------- */
+      function stroke(p,hf,color){
+        const n=p.length, h=[], nr=[];
+        for(let i=0;i<n;i++){
+          const a=p[Math.max(0,i-1)], b=p[Math.min(n-1,i+1)];
+          const tx=b[0]-a[0], ty=b[1]-a[1], l=Math.hypot(tx,ty)||1;
+          nr.push([-ty/l,tx/l]);
+          h.push(Math.max(.55,hf(n>1?i/(n-1):0)));
         }
-        const l=pts[pts.length-1];
-        return d+" L"+r1(l[0])+" "+r1(l[1]);
+        return {p,h,n:nr,color,light:mix(color,.5)};
       }
-      // 蜡笔质感：外层柔边 + 主笔触 + 一条错位的浅色细线
-      function crayon(parent,d,color,w,grow){
-        const specs=[
-          {c:color,w:w*1.7,o:.2,dx:0,dy:0},
-          {c:color,w:w,o:.92,dx:0,dy:0},
-          {c:mix(color,.45),w:w*.45,o:.75,dx:rand(-1,1)*w*.18,dy:rand(-1,1)*w*.18}
-        ];
-        return specs.map(s=>{
-          const p=node("path",{d,fill:"none",stroke:s.c,"stroke-width":r1(s.w),"stroke-opacity":s.o,"stroke-linecap":"round","stroke-linejoin":"round",transform:"translate("+r1(s.dx)+" "+r1(s.dy)+")"},parent);
-          if(grow){p.setAttribute("pathLength","1");p.setAttribute("stroke-dasharray","1 1");}
-          return p;
+      function paint(ctx,st,i0,i1){
+        const p=st.p,h=st.h,nr=st.n;
+        ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle=st.color; ctx.globalAlpha=1;
+        for(let i=Math.max(i0,1);i<=i1;i++){
+          ctx.lineWidth=h[i]*2;
+          ctx.beginPath(); ctx.moveTo(p[i-1][0],p[i-1][1]); ctx.lineTo(p[i][0],p[i][1]); ctx.stroke();
+        }
+        ctx.fillStyle=st.color;                       // 毛边
+        for(let i=i0;i<=i1;i++){
+          for(let k=0;k<3;k++){
+            const o=h[i]*(.92+Math.random()*.6)*(Math.random()<.5?-1:1), z=.8+Math.random()*1.1;
+            ctx.globalAlpha=.3+Math.random()*.5;
+            ctx.fillRect(p[i][0]+nr[i][0]*o,p[i][1]+nr[i][1]*o,z,z);
+          }
+        }
+        ctx.fillStyle=st.light;                       // 浅色颗粒
+        for(let i=i0;i<=i1;i++){
+          const o=(Math.random()*2-1)*h[i]*.8, z=1+Math.random()*1.2;
+          ctx.globalAlpha=.3+Math.random()*.3;
+          ctx.fillRect(p[i][0]+nr[i][0]*o,p[i][1]+nr[i][1]*o,z,z);
+        }
+        ctx.globalCompositeOperation="destination-out"; ctx.fillStyle="#000";   // 纸纹留白 + 边缘啃缺
+        for(let i=i0;i<=i1;i++){
+          for(let k=0;k<3;k++){
+            const o=(k<2?(.78+Math.random()*.3):(Math.random()*1.6-.8))*h[i]*(Math.random()<.5?-1:1), z=.8+Math.random()*1.4;
+            ctx.globalAlpha=.25+Math.random()*.5;
+            ctx.fillRect(p[i][0]+nr[i][0]*o,p[i][1]+nr[i][1]*o,z,z);
+          }
+        }
+        ctx.globalCompositeOperation="source-over"; ctx.globalAlpha=1;
+      }
+
+      /* ---------- 形状采样 ---------- */
+      function cub(a,b,c,d,n,out){
+        for(let i=0;i<n;i++){
+          const t=i/n,u=1-t;
+          out.push([u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0], u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]]);
+        }
+      }
+      function quad(a,c,b,n,out){
+        for(let i=0;i<n;i++){
+          const t=i/n,u=1-t;
+          out.push([u*u*a[0]+2*u*t*c[0]+t*t*b[0], u*u*a[1]+2*u*t*c[1]+t*t*b[1]]);
+        }
+      }
+      function seg(a,b,out){
+        const n=Math.max(4,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/1.1));
+        for(let i=0;i<=n;i++)out.push([a[0]+(b[0]-a[0])*i/n,a[1]+(b[1]-a[1])*i/n]);
+      }
+
+      /* ---------- 装饰精灵：爱心 / 四角星 / 十字 / 四点闪 / 中心星 ---------- */
+      function heartSprite(s){
+        return sprite(s*2.8,s*2.8,x=>{
+          const P=(u,v)=>[u*s,v*s], o=[], n=Math.max(10,Math.ceil(s*1.5)), m=Math.max(6,Math.ceil(s*.7));
+          cub(P(0,.85),P(-1.05,.2),P(-1.05,-.75),P(-.5,-.75),n,o);
+          cub(P(-.5,-.75),P(-.22,-.75),P(-.05,-.55),P(0,-.35),m,o);
+          cub(P(0,-.35),P(.05,-.55),P(.22,-.75),P(.5,-.75),m,o);
+          cub(P(.5,-.75),P(1.05,-.75),P(1.05,.2),P(0,.85),n,o);
+          o.push(P(0,.85));
+          x.fillStyle=mix(C.pink,.55); x.globalAlpha=.4;
+          x.beginPath(); o.forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])); x.fill(); x.globalAlpha=1;
+          paint(x,stroke(o,t=>Math.max(1.3,s*.15)*(.85+.3*Math.sin(t*8)),C.pink),0,o.length-1);
         });
       }
-      function reveal(paths,delay,dur){
-        paths.forEach(p=>p.animate(
-          [{strokeDashoffset:1,opacity:0},{opacity:1,offset:.04},{strokeDashoffset:0,opacity:1}],
-          {delay,duration:dur,easing:"cubic-bezier(.15,.7,.3,1)",fill:"both"}
-        ));
+      function diamondSprite(s,color){
+        return sprite(s*2.6,s*2.6,x=>{
+          const q=s*.16, o=[], n=Math.max(8,Math.ceil(s*1.1));
+          quad([0,-s],[q,-q],[s,0],n,o); quad([s,0],[q,q],[0,s],n,o);
+          quad([0,s],[-q,q],[-s,0],n,o); quad([-s,0],[-q,-q],[0,-s],n,o); o.push([0,-s]);
+          paint(x,stroke(o,()=>Math.max(1.1,s*.13),color),0,o.length-1);
+        });
       }
-      function pop(e,delay,dur,rot){
-        e.style.transformBox="fill-box"; e.style.transformOrigin="center";
-        e.animate([
-          {transform:"scale(0) rotate("+rot+"deg)",opacity:0},
-          {transform:"scale(1.25) rotate("+(-rot/3)+"deg)",opacity:1,offset:.6},
-          {transform:"scale(1) rotate(0deg)",opacity:1}
-        ],{delay,duration:dur,easing:"ease-out",fill:"both"});
+      function plusSprite(s,color){
+        return sprite(s*2.6,s*2.6,x=>{
+          const a=[],b=[]; seg([-s,0],[s,0],a); seg([0,-s],[0,s],b);
+          const hf=t=>Math.max(1,s*.17)*(.35+.65*Math.sin(Math.PI*t));
+          paint(x,stroke(a,hf,color),0,a.length-1); paint(x,stroke(b,hf,color),0,b.length-1);
+        });
+      }
+      function dashSprite(s,color){
+        return sprite(s*2.6,s*2.6,x=>{
+          [[1,0],[-1,0],[0,1],[0,-1]].forEach(d=>{
+            const o=[]; seg([d[0]*s*.4,d[1]*s*.4],[d[0]*s,d[1]*s],o);
+            paint(x,stroke(o,t=>Math.max(1,s*.15)*(.55+.45*Math.sin(Math.PI*t)),color),0,o.length-1);
+          });
+        });
+      }
+      function starSprite(r){
+        return sprite(r*2.8,r*2.8,x=>{
+          const pts=[];
+          for(let i=0;i<10;i++){
+            const a=-Math.PI/2+i*Math.PI/5+rand(-.04,.04), rr=i%2?r*rand(.46,.52):r*rand(.94,1.04);
+            pts.push([Math.cos(a)*rr,Math.sin(a)*rr]);
+          }
+          x.fillStyle=C.gold; x.strokeStyle=C.gold; x.lineJoin="round"; x.lineWidth=r*.3;
+          x.beginPath(); pts.forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1])); x.closePath(); x.fill(); x.stroke();
+          const o=[]; for(let i=0;i<10;i++)seg(pts[i],pts[(i+1)%10],o);
+          paint(x,stroke(o,()=>r*.15,C.gold),0,o.length-1);
+          x.globalCompositeOperation="destination-out"; x.fillStyle="#000";
+          for(let k=0;k<Math.round(r*5);k++){
+            const a=rand(0,TAU), d=r*Math.sqrt(Math.random())*.95;
+            x.globalAlpha=rand(.12,.4); x.fillRect(Math.cos(a)*d,Math.sin(a)*d,rand(.8,2),rand(.8,2));
+          }
+          x.globalCompositeOperation="source-over"; x.fillStyle=mix(C.gold,.55);
+          for(let k=0;k<Math.round(r*3);k++){
+            const a=rand(0,TAU), d=r*Math.sqrt(Math.random())*.7;
+            x.globalAlpha=rand(.3,.55); x.fillRect(Math.cos(a)*d,Math.sin(a)*d,rand(1,2.2),rand(1,2.2));
+          }
+          x.globalAlpha=1;
+        });
+      }
+      // 直线升空的蜡笔笔道（尾细头粗）
+      function rocketSprite(color,w,L){
+        return sprite(w*5,L+w*3,x=>{
+          const p=[], n=Math.ceil(L/1.1);
+          for(let i=0;i<n;i++)p.push([0,L/2-L*i/(n-1)]);
+          paint(x,stroke(p,t=>w*.5*(.14+.86*Math.pow(t,.6)),color),0,n-1);
+          x.fillStyle=color;
+          for(let k=0;k<5;k++){
+            x.globalAlpha=rand(.35,.8);
+            x.fillRect(rand(-w*.9,w*.9),L/2+rand(0,w*1.2),rand(1,2.4),rand(1,2.4));
+          }
+          x.globalAlpha=1;
+        });
       }
 
-      // 形状
-      function starD(r){
-        let d="";
-        for(let i=0;i<10;i++){
-          const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*.45:r;
-          d+=(i?"L":"M")+r1(Math.cos(a)*rr)+" "+r1(Math.sin(a)*rr);
-        }
-        return d+"Z";
-      }
-      function sparkD(s){
-        const q=s*.2;
-        return "M0 "+r1(-s)+" Q"+r1(q)+" "+r1(-q)+" "+r1(s)+" 0 Q"+r1(q)+" "+r1(q)+" 0 "+r1(s)+" Q"+r1(-q)+" "+r1(q)+" "+r1(-s)+" 0 Q"+r1(-q)+" "+r1(-q)+" 0 "+r1(-s)+"Z";
-      }
-      function heartD(s){
-        const p=(x,y)=>r1(x*s)+" "+r1(y*s);
-        return "M"+p(0,.85)+" C"+p(-1.05,.2)+" "+p(-1.05,-.75)+" "+p(-.5,-.75)+" C"+p(-.22,-.75)+" "+p(-.05,-.55)+" "+p(0,-.35)+" C"+p(.05,-.55)+" "+p(.22,-.75)+" "+p(.5,-.75)+" C"+p(1.05,-.75)+" "+p(1.05,.2)+" "+p(0,.85)+"Z";
-      }
-
-      // 升空：1 秒
-      function rocket(root,color,w,R,dy){
-        const g=node("g",{},root), L=R*.5;
-        crayon(g,smooth([[0,0],[w*.5,L*.15],[-w*.5,L*.3],[w*.4,L*.45],[0,L*.55]]),color,w*.8,false);
-        crayon(g,smooth([[0,L*.55],[-w*.4,L*.7],[w*.4,L*.85],[0,L]]),mix(color,.45),w*.45,false);
-        for(let i=0;i<6;i++){
-          node("circle",{cx:r1(rand(-w,w)),cy:r1(L*(1.05+i*.12)),r:r1(Math.max(1.2,w*.35-i*.3)),fill:i%2?C.yellow:color,"fill-opacity":.85},g);
-        }
-        node("path",{d:sparkD(w*1.6),fill:C.gold,stroke:C.gold,"stroke-width":r1(w*.3),"stroke-linejoin":"round"},g);
-        const wob=w*rand(.8,1.6)*(Math.random()<.5?-1:1);
-        g.animate([
-          {transform:"translate(0px,"+r1(dy)+"px)",opacity:1,offset:0},
-          {transform:"translate("+r1(wob)+"px,"+r1(dy*.55)+"px)",opacity:1,offset:.35},
-          {transform:"translate("+r1(-wob*.6)+"px,"+r1(dy*.18)+"px)",opacity:1,offset:.7},
-          {transform:"translate(0px,0px)",opacity:1,offset:.93},
-          {transform:"translate(0px,0px)",opacity:0,offset:1}
-        ],{duration:1000,easing:"linear",fill:"both"});
-      }
-
-      // 爆开的线条：至少 22 条，其中红/黄共 4–5 条，其余为橙/绿
-      function lines(bg,R,w,mainC,otherC){
+      /* ---------- 一枚烟花 ---------- */
+      function makeFw(pl,H){
+        const R=pl.R, w=Math.max(5,R*.048), unit=clamp(R/160,.8,1.5);
+        const mainC=pl.kind==="orange"?C.orange:C.green, otherC=pl.kind==="orange"?C.green:C.orange;
+        const half=Math.ceil(R*1.3);
+        const layer=sprite(half*2,half*2);
         const N=22+Math.floor(Math.random()*3), aux=4+Math.floor(Math.random()*2);
         const cols=[];
         for(let i=0;i<aux;i++)cols.push(i<2?C.red:C.yellow);
         const rest=N-aux, nm=Math.round(rest*.72);
         for(let i=0;i<rest;i++)cols.push(i<nm?mainC:otherC);
         shuffle(cols);
-        const base=rand(0,TAU), step=TAU/N, angs=[];
+
+        const base=rand(0,TAU), step=TAU/N, lines=[];
         for(let i=0;i<N;i++){
-          const a=base+i*step+rand(-.18,.18)*step; angs.push(a);
-          const ra=R*rand(.15,.24), rb=R*(i%2?rand(.6,.8):rand(.88,1.02));
-          const k=pick([1,2,2,3]), A=R*rand(.03,.1)*(Math.random()<.5?-1:1), ph=rand(0,Math.PI);
-          const hook=Math.random()<.25, hs=Math.random()<.5?-1:1;
-          const pts=[], n=7;
+          const a=base+i*step+rand(-.12,.12)*step, long=i%2===0;
+          const ra=long?R*rand(.24,.3):R*rand(.3,.38), rb=long?R*rand(.88,1):R*rand(.62,.78);
+          const type=pick([0,0,1,1,2,3]), A=R*rand(.025,.05)*(Math.random()<.5?-1:1), ph=rand(0,Math.PI), hs=Math.random()<.5?-1:1, bend=R*rand(-.07,.07);
+          const len=Math.abs(rb-ra), n=Math.max(10,Math.ceil(len/1.1)), pts=[];
           for(let j=0;j<n;j++){
-            const t=j/(n-1), r=ra+(rb-ra)*t;
-            let off=A*Math.sin(t*Math.PI*k+ph)*(.4+t);
-            if(hook&&j>=n-2)off+=hs*R*.07*(j-n+3);
-            off+=rand(-.5,.5)*w*.25;
-            pts.push([Math.cos(a)*r-Math.sin(a)*off, Math.sin(a)*r+Math.cos(a)*off]);
+            const t=j/(n-1);
+            let r=ra+(rb-ra)*t, off;
+            if(type===0)off=A*Math.sin(Math.PI*t);
+            else if(type===1)off=A*Math.sin(TAU*t+ph);
+            else if(type===2)off=A*.8*Math.sin(Math.PI*3*t+ph)*(.5+t);
+            else{
+              const k=Math.pow(clamp((t-.65)/.35,0,1),2);
+              off=A*Math.sin(Math.PI*t)+hs*R*.07*k; r-=R*.05*k;
+            }
+            off+=bend*t*t;
+            pts.push([Math.cos(a)*r-Math.sin(a)*off,Math.sin(a)*r+Math.cos(a)*off]);
           }
-          reveal(crayon(bg,smooth(pts),cols[i],w,true),1000+rand(0,160),rand(900,1300));
+          const wi=w*rand(.8,1.15);
+          const hf=t=>wi/2*(.2+.8*Math.pow(Math.sin(Math.PI*clamp(t,0,1)),.6))*(1+.07*Math.sin(t*17+ph));
+          lines.push({st:stroke(pts,hf,cols[i]),drawn:0,delay:rand(0,160),dur:rand(900,1300),a,rb,short:!long});
         }
-        return angs;
+
+        // 空隙装饰
+        const decor=[], add=(sp,x,y,rot,d)=>decor.push({sp,x,y,rot,delay:d});
+        const shorts=shuffle(lines.filter(l=>l.short));
+        for(let i=0;i<Math.min(3,shorts.length);i++){
+          const l=shorts[i], rr=l.rb+R*rand(.1,.16);
+          add(heartSprite(Math.max(9,R*.09)),Math.cos(l.a)*rr,Math.sin(l.a)*rr,rand(-.35,.35),rand(300,900));
+        }
+        const gaps=shuffle(lines.map((l,i)=>(l.a+(i<N-1?lines[i+1].a:lines[0].a+TAU))/2));
+        const pal=[C.yellow,C.green,C.lilac,C.sky,C.pink];
+        let g=0;
+        const place=(sp,lo,hi,d)=>{const a=gaps[g++%N], rr=R*rand(lo,hi); add(sp,Math.cos(a)*rr,Math.sin(a)*rr,rand(-.4,.4),d);};
+        for(let i=0;i<3;i++)place(diamondSprite(Math.max(6,R*rand(.045,.06)),pick(pal)),.5,1.05,rand(300,1000));
+        for(let i=0;i<2;i++)place(plusSprite(Math.max(5,R*rand(.035,.05)),pick(pal)),.5,1.1,rand(300,1000));
+        for(let i=0;i<2;i++)place(dashSprite(Math.max(6,R*rand(.045,.06)),pick([C.yellow,C.green])),.55,1.1,rand(300,1000));
+
+        const dots=[];
+        for(let i=0;i<14;i++){
+          const a=rand(0,TAU), rr=R*rand(.3,1.15);
+          dots.push({x:Math.cos(a)*rr,y:Math.sin(a)*rr,r:rand(1.6,3.8)*unit,c:pick([C.yellow,C.orange,C.green,C.sky,C.lilac,C.pink]),delay:rand(0,250),dur:rand(800,1200),ph:rand(0,TAU)});
+        }
+
+        const L=R*.4;
+        return {cx:pl.cx,cy:pl.cy,R,H,layer,lines,decor,dots,L,
+                star:starSprite(Math.max(16,R*.16)),
+                rocket:rocketSprite(mainC,w*.9,L)};
       }
 
-      // 空隙装饰：粉红爱心、小星星、星星点点
-      function decor(bg,angs,R,w){
-        const N=angs.length;
-        const gaps=shuffle(angs.map((a,i)=>(a+(i<N-1?angs[i+1]:angs[0]+TAU))/2));
-        const unit=Math.max(.8,Math.min(1.5,R/160));
-        for(let i=0;i<3;i++){
-          const a=gaps[i], rr=R*rand(.62,.92), s=R*rand(.07,.09);
-          const o=node("g",{transform:"translate("+r1(Math.cos(a)*rr)+" "+r1(Math.sin(a)*rr)+") rotate("+r1(rand(-20,20))+")"},bg);
-          const g=node("g",{},o), d=heartD(s);
-          node("path",{d,fill:C.pink,"fill-opacity":.28},g);
-          crayon(g,d,C.pink,w*.7,false);
-          pop(g,1000+rand(300,900),700,rand(-25,25));
-        }
-        for(let i=0;i<6;i++){
-          const a=gaps[3+i], rr=R*rand(.4,1.02), s=R*rand(.04,.065), c=pick([C.yellow,C.lilac,C.sky,C.mint]);
-          const o=node("g",{transform:"translate("+r1(Math.cos(a)*rr)+" "+r1(Math.sin(a)*rr)+") rotate("+r1(rand(-15,15))+")"},bg);
-          const g=node("g",{},o), d=sparkD(s);
-          node("path",{d,fill:c,"fill-opacity":.4},g);
-          crayon(g,d,c,w*.5,false);
-          pop(g,1000+rand(300,1000),700,rand(-60,60));
-        }
-        for(let i=0;i<8;i++){
-          const a=rand(0,TAU), r0=R*rand(.55,1.05), len=R*rand(.05,.09);
-          const d="M"+r1(Math.cos(a)*r0)+" "+r1(Math.sin(a)*r0)+" L"+r1(Math.cos(a)*(r0+len))+" "+r1(Math.sin(a)*(r0+len));
-          reveal(crayon(bg,d,pick([C.orange,C.green,C.yellow,C.sky]),w*.6,true),1000+rand(200,600),500);
-        }
-        for(let i=0;i<18;i++){
-          const a=rand(0,TAU), rr=R*rand(.3,1.15), x=Math.cos(a)*rr, y=Math.sin(a)*rr, s=rand(1.6,3.6)*unit;
-          const d=node("ellipse",{cx:r1(x),cy:r1(y),rx:r1(s),ry:r1(s*rand(.7,1)),fill:pick([C.yellow,C.orange,C.green,C.sky,C.lilac,C.pink]),"fill-opacity":.95},bg);
-          d.style.transformBox="fill-box"; d.style.transformOrigin="center";
-          const delay=1000+rand(0,250);
-          d.animate([
-            {transform:"translate("+r1(-x*.8)+"px,"+r1(-y*.8)+"px) scale(.3)",opacity:0},
-            {opacity:1,offset:.3},
-            {transform:"translate(0px,0px) scale(1)",opacity:1}
-          ],{delay,duration:rand(800,1200),easing:"cubic-bezier(.15,.7,.3,1)",fill:"both"});
-          d.animate([{opacity:1},{opacity:.25},{opacity:1}],{delay:1900,duration:rand(350,600),iterations:3});
-        }
+      function popS(p){
+        if(p<=0)return 0; if(p>=1)return 1;
+        return p<.6?1.25*easeOut(p/.6):1.25-.25*easeOut((p-.6)/.4);
       }
 
-      // 中心金黄蜡笔星星
-      function centerStar(bg,R,w){
-        const g=node("g",{},bg), r=R*.17, d=starD(r);
-        node("path",{d,fill:"none",stroke:C.gold,"stroke-width":r1(w*1.6),"stroke-opacity":.2,"stroke-linejoin":"round"},g);
-        node("path",{d,fill:C.gold,"fill-opacity":.95,stroke:C.gold,"stroke-width":r1(w*.7),"stroke-linejoin":"round"},g);
-        node("path",{d:starD(r*.7),fill:"none",stroke:mix(C.gold,.55),"stroke-width":r1(w*.3),"stroke-opacity":.7,"stroke-linejoin":"round",transform:"translate("+r1(-w*.15)+" "+r1(-w*.15)+")"},g);
-        pop(g,1000,800,-40);
-      }
-
-      // 一枚烟花：升空 1 秒 → 炸开 2 秒 → 消失 2 秒
-      function fire(svg,cx,cy,R,kind,H){
-        const w=Math.max(5.5,R*.05);
-        const mainC=kind==="orange"?C.orange:C.green, otherC=kind==="orange"?C.green:C.orange;
-        const root=node("g",{transform:"translate("+r1(cx)+" "+r1(cy)+")"},svg);
-        rocket(root,mainC,w,R,H-cy+R*.9+30);
-        const bg=node("g",{},root);
-        bg.style.opacity="0";
-        bg.animate([
-          {opacity:1,transform:"translate(0px,0px) scale(.94)",offset:0},
-          {opacity:1,transform:"translate(0px,0px) scale(1)",offset:.5,easing:"ease-out"},
-          {opacity:0,transform:"translate(0px,26px) scale(1.03)",offset:1}
-        ],{delay:1000,duration:4000,easing:"linear",fill:"forwards"});
-        const angs=lines(bg,R,w,mainC,otherC);
-        decor(bg,angs,R,w);
-        centerStar(bg,R,w);
+      // 升空 1 秒 → 炸开 2 秒 → 消失 2 秒
+      function drawFw(ctx,f,lt){
+        if(lt<0||lt>5000)return;
+        if(lt<1000){
+          const p=lt/1000, yHead=f.cy+(f.H-f.cy+f.L+30)*Math.pow(1-p,2);   // 直线升空，越飞越慢
+          ctx.globalAlpha=p>.93?(1-p)/.07:1;
+          put(ctx,f.rocket,f.cx,yHead+f.L/2,0,1);
+          ctx.globalAlpha=1;
+          return;
+        }
+        const bt=lt-1000, lx=f.layer.x;
+        f.lines.forEach(l=>{
+          const q=clamp((bt-l.delay)/l.dur,0,1);
+          if(q<=0)return;
+          const tg=Math.floor(easeOut(q)*(l.st.p.length-1));
+          if(tg>=l.drawn){paint(lx,l.st,l.drawn,tg);l.drawn=tg+1;}
+        });
+        let a=1,off=0,sc=.94+.06*easeOut(clamp(bt/2000,0,1));
+        if(bt>2000){const k=clamp((bt-2000)/2000,0,1); a=1-k; off=26*k; sc*=1+.03*k;}
+        ctx.save(); ctx.translate(f.cx,f.cy+off); ctx.scale(sc,sc);
+        ctx.globalAlpha=a;
+        ctx.drawImage(f.layer.c,-f.layer.w/2,-f.layer.h/2,f.layer.w,f.layer.h);
+        f.decor.forEach(d=>{
+          const s=popS((bt-d.delay)/700);
+          if(s>0)put(ctx,d.sp,d.x,d.y,d.rot,s);
+        });
+        f.dots.forEach(d=>{
+          const p=clamp((bt-d.delay)/d.dur,0,1);
+          if(p<=0)return;
+          const e=easeOut(p), k=.2+.8*e;
+          ctx.globalAlpha=a*Math.min(1,p*4)*(bt>1900?.7+.3*Math.cos(bt*.012+d.ph):1);
+          ctx.fillStyle=d.c;
+          ctx.beginPath(); ctx.arc(d.x*k,d.y*k,d.r*(.4+.6*e),0,TAU); ctx.fill();
+        });
+        ctx.globalAlpha=a;
+        const ss=popS(bt/800);
+        if(ss>0)put(ctx,f.star,0,0,(1-clamp(bt/800,0,1))*-.7,ss);
+        ctx.restore();
+        ctx.globalAlpha=1;
       }
 
       let running=false;
       function trigger(){
         running=true;
-        const ov=document.createElement("div");
-        ov.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9998;pointer-events:none;overflow:hidden";
-        document.body.appendChild(ov);
-        const W=ov.clientWidth, H=ov.clientHeight;
-        const svg=node("svg",{viewBox:"0 0 "+W+" "+H,width:"100%",height:"100%"},ov);
-        svg.style.display="block";
-        const Rs=Math.min(W*.46,H*.34);               // 单发：屏幕中心
-        const Rp=Math.min(W*.25,H*.2);                // 双发：左右并排
-        const hd=Math.min(W*.23,Rp*1.15);
-        fire(svg,W/2,H*.46,Rs,"orange",H);                              // 第 1 个：橙
-        setTimeout(()=>fire(svg,W/2,H*.46,Rs,"green",H),4000);          // 第 2 个：绿（前一个最后 1 秒消失前发射）
-        setTimeout(()=>{                                                // 第 3、4 个：橙+绿同时
-          fire(svg,W/2-hd,H*.4,Rp,"orange",H);
-          fire(svg,W/2+hd,H*.56,Rp,"green",H);
-        },8000);
-        setTimeout(()=>{ov.remove();running=false;},13500);
+        DPR=Math.min(window.devicePixelRatio||1,2);
+        const cv=document.createElement("canvas");
+        cv.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;pointer-events:none;display:block";
+        document.body.appendChild(cv);
+        const W=cv.clientWidth, H=cv.clientHeight;
+        cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+        const ctx=cv.getContext("2d");
+        const Rs=Math.min(W*.46,H*.34), Rp=Math.min(W*.25,H*.2), hd=Math.min(W*.23,Rp*1.15);
+        const plan=[                                               // 橙 → 绿 → 橙+绿同时（相隔 4 秒，前一个最后 1 秒消失前发射）
+          {at:0,   cx:W/2,    cy:H*.46,R:Rs,kind:"orange"},
+          {at:4000,cx:W/2,    cy:H*.46,R:Rs,kind:"green"},
+          {at:8000,cx:W/2-hd, cy:H*.4, R:Rp,kind:"orange"},
+          {at:8000,cx:W/2+hd, cy:H*.56,R:Rp,kind:"green"}
+        ];
+        const t0=performance.now();
+        function frame(now){
+          const t=Math.max(0,now-t0);
+          ctx.setTransform(DPR,0,0,DPR,0,0);
+          ctx.clearRect(0,0,W,H);
+          plan.forEach(pl=>{
+            if(!pl.fw&&t>=pl.at)pl.fw=makeFw(pl,H);
+            if(pl.fw)drawFw(ctx,pl.fw,t-pl.at);
+          });
+          if(t<13300)requestAnimationFrame(frame);
+          else{cv.remove();running=false;}
+        }
+        requestAnimationFrame(frame);
       }
 
-      // 触发：电脑（鼠标）划过 4 次；手机（触屏）点击 4 次
+      // 触发：电脑、手机都是点击 eyebrow 四次（每次间隔不超过 3 秒）
       const eb=document.querySelector(".eyebrow");
       if(!eb)return;
       let count=0,timer=0;
-      function bump(){
+      eb.addEventListener("click",()=>{
         if(running)return;
         count++;
         clearTimeout(timer);
         timer=setTimeout(()=>{count=0;},3000);
         if(count>=4){count=0;trigger();}
-      }
-      eb.addEventListener("pointerenter",e=>{ if(e.pointerType==="mouse")bump(); });
-      eb.addEventListener("click",e=>{ if(e.pointerType!=="mouse")bump(); });
+      });
     })();
     /* 以上为彩蛋。 */
 
