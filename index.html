@@ -578,6 +578,50 @@ window.addEventListener("load",()=>{
           paint(x,stroke(o,t=>Math.max(1.3,s*.15)*(.85+.3*Math.sin(t*8)),C.pink),0,o.length-1);
         });
       }
+      // 小赛车轮：红黄交替，蜡笔质感
+      function flagSprite(s){
+        return sprite(s*3.4,s*3.2,x=>{
+          const tire="#353535", red="#E84B3C", yellow="#FFD43B", cx=0, cy=0, r=s*1.12, hub=s*.76;
+          x.fillStyle=tire; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.fill();
+          const edge=[]; for(let i=0;i<=48;i++){const a=i/48*TAU; edge.push([Math.cos(a)*r,Math.sin(a)*r]);}
+          paint(x,stroke(edge,()=>Math.max(1.2,s*.09),tire),0,edge.length-1);
+          for(let i=0;i<4;i++){const a=i*Math.PI/2; x.fillStyle=i%2===0?red:yellow; x.beginPath(); x.moveTo(cx,cy); x.arc(cx,cy,hub,a,a+Math.PI/2); x.closePath(); x.fill();}
+          const inner=[]; for(let i=0;i<=36;i++){const a=i/36*TAU; inner.push([Math.cos(a)*hub,Math.sin(a)*hub]);}
+          paint(x,stroke(inner,()=>Math.max(1,s*.07),"#3B3028"),0,inner.length-1);
+          x.fillStyle="#FFF0C2"; x.beginPath(); x.arc(cx,cy,s*.17,0,TAU); x.fill();
+          const center=[]; for(let i=0;i<=20;i++){const a=i/20*TAU; center.push([Math.cos(a)*s*.17,Math.sin(a)*s*.17]);}
+          paint(x,stroke(center,()=>Math.max(.9,s*.055),"#8A6240"),0,center.length-1);
+          x.globalCompositeOperation="destination-out"; x.fillStyle="#000";
+          for(let k=0;k<Math.round(s*9);k++){const a=rand(0,TAU), d=Math.sqrt(Math.random())*r*.95; x.globalAlpha=rand(.12,.32); x.fillRect(Math.cos(a)*d,Math.sin(a)*d,rand(.7,1.6),rand(.7,1.6));}
+          x.globalCompositeOperation="source-over"; x.globalAlpha=1;
+        });
+      }
+      // 小奖杯（金黄，与中心星星同色）
+      function trophySprite(s){
+        return sprite(s*2.9,s*2.9,x=>{
+          const P=(u,v)=>[u*s,v*s], o=[], n=Math.max(10,Math.ceil(s*1.2));
+          seg(P(-.62,-.8),P(.62,-.8),o);
+          cub(P(.62,-.8),P(.62,-.1),P(.4,.1),P(.14,.2),n,o);
+          seg(P(.14,.2),P(.12,.55),o); seg(P(.12,.55),P(.45,.62),o); seg(P(.45,.62),P(.45,.88),o);
+          seg(P(.45,.88),P(-.45,.88),o); seg(P(-.45,.88),P(-.45,.62),o); seg(P(-.45,.62),P(-.12,.55),o);
+          seg(P(-.12,.55),P(-.14,.2),o);
+          cub(P(-.14,.2),P(-.4,.1),P(-.62,-.1),P(-.62,-.8),n,o);
+          x.fillStyle=C.gold;
+          x.beginPath(); o.forEach((c,i)=>i?x.lineTo(c[0],c[1]):x.moveTo(c[0],c[1])); x.closePath(); x.fill();
+          paint(x,stroke(o,()=>Math.max(1.1,s*.09),C.gold),0,o.length-1);
+          [1,-1].forEach(d=>{
+            const h=[]; cub(P(d*.6,-.65),P(d*1.08,-.72),P(d*1.02,-.02),P(d*.38,0),n,h);
+            paint(x,stroke(h,()=>Math.max(1.1,s*.08),C.gold),0,h.length-1);
+          });
+          const hl=[]; seg(P(-.4,-.62),P(-.3,-.2),hl);
+          paint(x,stroke(hl,()=>Math.max(.9,s*.06),mix(C.gold,.65)),0,hl.length-1);
+          x.globalCompositeOperation="destination-out"; x.fillStyle="#000";
+          for(let k=0;k<Math.round(s*6);k++){
+            x.globalAlpha=rand(.12,.35); x.fillRect(rand(-.6,.6)*s,rand(-.8,.85)*s,rand(.8,1.8),rand(.8,1.8));
+          }
+          x.globalCompositeOperation="source-over"; x.globalAlpha=1;
+        });
+      }
       function diamondSprite(s,color){
         return sprite(s*2.6,s*2.6,x=>{
           const q=s*.16, o=[], n=Math.max(8,Math.ceil(s*1.1));
@@ -680,9 +724,10 @@ window.addEventListener("load",()=>{
         // 空隙装饰
         const decor=[], add=(sp,x,y,rot,d)=>decor.push({sp,x,y,rot,delay:d});
         const shorts=shuffle(lines.filter(l=>l.short));
-        for(let i=0;i<Math.min(3,shorts.length);i++){
+        for(let i=0;i<Math.min(3,shorts.length);i++){       // 第 1 个放奖杯，第 2、3 个放小车轮
           const l=shorts[i], rr=l.rb+R*rand(.1,.16);
-          add(heartSprite(Math.max(9,R*.09)),Math.cos(l.a)*rr,Math.sin(l.a)*rr,rand(-.35,.35),rand(300,900));
+          const sp=i===0?trophySprite(Math.max(10,R*.1)):flagSprite(Math.max(9,R*.085));
+          add(sp,Math.cos(l.a)*rr,Math.sin(l.a)*rr,i===0?rand(-.2,.2):rand(-.3,.3),rand(300,900));
         }
         const gaps=shuffle(lines.map((l,i)=>(l.a+(i<N-1?lines[i+1].a:lines[0].a+TAU))/2));
         const pal=[C.yellow,C.green,C.lilac,C.sky,C.pink];
