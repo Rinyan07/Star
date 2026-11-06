@@ -111,7 +111,7 @@
     .spa-track .track-base { stroke:var(--paper); stroke-width:10; }
     .spa-track .track-green { stroke:#D6FE07; stroke-dasharray:50 50; }
     .spa-track .track-orange { stroke:#FF7F00; stroke-dasharray:50 50; stroke-dashoffset:-50; }
-    .spa-track .track-outline { stroke:#000; stroke-width:11; }
+    .spa-track .track-outline { stroke:#000; stroke-width:10; }
     
     /* 以下为生日礼花相关，过了需要删除。 */
     .confetti-piece { position:fixed; top:-15px; width:5px; height:11px; z-index:9999; pointer-events:none; animation:confetti-fall 2s ease-in forwards; border-radius:2px; }
@@ -726,7 +726,7 @@ window.addEventListener("load",()=>{
         const shorts=shuffle(lines.filter(l=>l.short));
         for(let i=0;i<Math.min(3,shorts.length);i++){       // 第 1 个放奖杯，第 2、3 个放小车轮
           const l=shorts[i], rr=l.rb+R*rand(.1,.16);
-          const sp=i===0?trophySprite(Math.max(10,R*.1)):flagSprite(Math.max(9,R*.085));
+          const sp=i<2?trophySprite(Math.max(10,R*.1)):flagSprite(Math.max(9,R*.085));
           add(sp,Math.cos(l.a)*rr,Math.sin(l.a)*rr,i===0?rand(-.2,.2):rand(-.3,.3),rand(300,900));
         }
         const gaps=shuffle(lines.map((l,i)=>(l.a+(i<N-1?lines[i+1].a:lines[0].a+TAU))/2));
