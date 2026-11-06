@@ -473,7 +473,7 @@ window.addEventListener("load",()=>{
     /* 以下为彩蛋：连点 eyebrow 四次放蜡笔烟花（电脑、手机都是点击四次）。不需要时整段删除。 */
     (function(){
       const TAU=Math.PI*2;
-      const C={orange:"#FF8A1A",green:"#8FE36A",red:"#FF6B6B",yellow:"#FFE252",gold:"#FFC21F",pink:"FBC1E2",lilac:"#B79BF2",sky:"#8CC8FF",oranged:#FEAF0A,greend:"#D6FE07"};
+      const C={orange:"#FF8A1A",green:"#8FE36A",red:"#FF6B6B",yellow:"#FFE252",gold:"#FFC21F",pink:"#FBC1E2",lilac:"#B79BF2",sky:"#8CC8FF",oranged:"#FEAF0A",greend:"#D6FE07"};
       const rand=(a,b)=>a+Math.random()*(b-a);
       const pick=a=>a[Math.floor(Math.random()*a.length)];
       const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
